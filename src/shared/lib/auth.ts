@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
- 
+import { getSession, useSession } from "next-auth/react"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GitHub({
@@ -14,3 +15,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 })
+
+export { getSession, useSession }

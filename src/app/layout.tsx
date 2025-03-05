@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TanstackQueryProvider from "@/shared/providers/TanstackQueryProvider";
+import SessionProvider from "@/shared/providers/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TanstackQueryProvider>
-          {children}
+          <SessionProvider> 
+            {children}
+          </SessionProvider>
         </TanstackQueryProvider>
       </body>
     </html>
