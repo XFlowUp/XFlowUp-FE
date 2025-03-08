@@ -33,6 +33,8 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import DialogLogin from '@/components/landing_page/dialog-login';
+import { useRouter } from 'next/navigation';
+
 
 const products: { title: string; href: string; description: string }[] = [
   {
@@ -82,6 +84,7 @@ const developers: { title: string; href: string; description: string }[] = [
 
 const ListItem = React.forwardRef<React.ElementRef<'a'>, React.ComponentPropsWithoutRef<'a'>>(
   ({ className, title, children, ...props }, ref) => {
+    const router = useRouter();
     return (
       <li>
         <NavigationMenuLink asChild>
@@ -104,6 +107,7 @@ const ListItem = React.forwardRef<React.ElementRef<'a'>, React.ComponentPropsWit
 ListItem.displayName = 'ListItem';
 
 export function Header() {
+  const router = useRouter();
   return (
     <header
       className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur

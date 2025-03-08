@@ -1,6 +1,6 @@
-import NextAuth from "next-auth"
-import GitHub from "next-auth/providers/github"
-import { getSession, useSession } from "next-auth/react"
+import NextAuth from 'next-auth';
+import GitHub from 'next-auth/providers/github';
+import { getSession, useSession } from 'next-auth/react';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -9,19 +9,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       authorization: {
         params: {
-          scope: "read:user user:email repo admin:repo_hook workflow",
+          scope: 'read:user user:email repo admin:repo_hook workflow',
         },
       },
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      return true
+      return true;
     },
     async redirect({ url, baseUrl }) {
-      return baseUrl + '/dashboard'
-    }, 
-  }
-})
+      return baseUrl + '/dashboard';
+    },
+  },
+});
 
-export { getSession, useSession }
+export { getSession, useSession };
