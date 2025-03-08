@@ -65,6 +65,8 @@ export default function Dashboard() {
                     </div>
                     <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
                   </div>
+                </div>
+              </div>
               <div className="relative flex p-3 rounded-md items-center bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
                 <div className="w-full flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:items-center lg:justify-between">
                   <div className="flex flex-col xs:flex-row xs:items-center gap-y-2 gap-x-6 justify-between sm:justify-start">
@@ -83,11 +85,7 @@ export default function Dashboard() {
               <hr className="w-full border-t border-gray-100 dark:border-gray-800 my-0" />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border rounded-lg p-6 h-45 transition-all duration-200 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
-                <Card className="border rounded-lg p-6 h-45 transition-all duration-200 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
                   <div className="flex flex-col gap-2 h-full relative z-10">
-                    <div className="flex flex-col flex-grow">
-                      <p className="font-medium mb-3">Web call</p>
-                    </div>
                     <div className="flex flex-col flex-grow">
                       <p className="font-medium mb-3">Web call</p>
                     </div>

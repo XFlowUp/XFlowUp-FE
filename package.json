@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "eslint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "prepare": "husky"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^2.8.0",
@@ -46,6 +47,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
+    "husky": "^9.1.7",
     "tailwindcss": "^4.0.9",
     "typescript": "^5"
   }
