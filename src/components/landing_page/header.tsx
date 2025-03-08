@@ -23,7 +23,18 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
+import DialogLogin from '@/components/landing_page/dialog-login';
 import { useRouter } from 'next/navigation';
+
 
 const products: { title: string; href: string; description: string }[] = [
   {
@@ -156,9 +167,7 @@ export function Header() {
           </nav>
         </div>
         <div className="hidden md:flex items-center">
-          <Link href="/auth/login" prefetch>
-            <Button>Sign in</Button>
-          </Link>
+          <DialogLogin />
         </div>
 
         <Drawer>
@@ -210,9 +219,7 @@ export function Header() {
             </div>
             <DrawerFooter>
               <DrawerClose asChild>
-                <Button onClick={() => {
-                   console.log("DANG NHAP")
-                }}>Sign in</Button>
+                <DialogLogin />
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>
