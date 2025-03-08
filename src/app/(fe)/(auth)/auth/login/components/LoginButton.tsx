@@ -1,15 +1,14 @@
+import { redirect } from 'next/navigation';
 
-import { signIn } from "@/shared/lib/auth"
- 
 export default function SignIn() {
   return (
     <form
       action={async () => {
-        "use server"
-        await signIn("github")
+        'use server';
+        redirect(process.env.AUTH_REDIRECT_URL || '/');
       }}
     >
       <button type="submit">Signin with GitHub</button>
     </form>
-  )
-} 
+  );
+}
