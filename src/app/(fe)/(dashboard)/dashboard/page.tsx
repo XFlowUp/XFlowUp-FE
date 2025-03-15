@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/avatar-component';
 import { UserDropdown } from '@/components/dropdown-components';
+import { SettingsGearIcon } from '@/components/ui/settings-gear';
 
 export default function Dashboard() {
   return (
@@ -46,24 +47,12 @@ export default function Dashboard() {
 
                     <div className="flex gap-2 flex-grow justify-end">
                       <Button variant="outline" size="icon">
-                        <IoSettingsOutline />
+                        <SettingsGearIcon />
                       </Button>
                       <Button>
                         <IoMdAdd /> New
                       </Button>
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div className="relative flex p-3 rounded-md items-center bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                <div className="w-full flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:items-center lg:justify-between">
-                  <div className="flex flex-col xs:flex-row xs:items-center gap-y-2 gap-x-6 justify-between sm:justify-start">
-                    <div className="flex space-x-1">
-                      <p className="text-sm font-semibold">Free Trial</p>
-                      <p className="text-sm opacity-50">|</p>
-                      <p className="text-sm">$ 4.75</p>
-                    </div>
-                    <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
                   </div>
                 </div>
               </div>

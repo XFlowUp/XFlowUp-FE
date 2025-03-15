@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
 import useUserInfo from '../api/queries/useUserInfo';
@@ -9,13 +9,11 @@ export default function ProtectedRoute({ children }: React.PropsWithChildren<{}>
   const setUser = useAuthStore(state => state.setUser);
   const router = useRouter();
 
-
   useEffect(() => {
     if (!isLoading && isSuccess) {
       setUser(data?.data);
     }
-  }
-  , [isLoading, isSuccess]);
+  }, [isLoading, isSuccess]);
 
   useEffect(() => {
     if (!isLoading && isError) {
@@ -23,9 +21,6 @@ export default function ProtectedRoute({ children }: React.PropsWithChildren<{}>
       router.push('/auth/login');
     }
   }, [isLoading, isError]);
-
-
-
 
   if (isLoading) {
     return <div>Loading...</div>;
