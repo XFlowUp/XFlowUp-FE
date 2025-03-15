@@ -1,13 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { IoPersonOutline } from '@react-icons/all-files/io5/IoPersonOutline';
-import { IoSettingsOutline } from '@react-icons/all-files/io5/IoSettingsOutline';
-import { IoDocumentTextOutline } from '@react-icons/all-files/io5/IoDocumentTextOutline';
-import { IoChatboxOutline } from '@react-icons/all-files/io5/IoChatboxOutline';
 import { IoMdPower } from '@react-icons/all-files/io/IoMdPower';
-import { IoMoonOutline } from '@react-icons/all-files/io5/IoMoonOutline';
-import { IoSunnyOutline } from '@react-icons/all-files/io5/IoSunnyOutline';
 import { useTheme } from 'next-themes';
 import {
   DropdownMenu,
@@ -18,6 +12,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar } from './avatar-component';
+import { SettingsGearIcon } from '@/components/ui/settings-gear';
+import { UserIcon } from '@/components/ui/user';
+import { BookTextIcon } from '@/components/ui/book-text';
+import { MessageSquareIcon } from '@/components/ui/message-square';
+import { SunIcon } from '@/components/ui/sun';
+import { MoonIcon } from '@/components/ui/moon';
 
 export function ItemComponent({ icon, title }: { icon: ReactNode; title: string }) {
   return (
@@ -52,7 +52,7 @@ export function ThemeToggle() {
         className="px-3 py-2 mt-1 cursor-pointer group"
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       >
-        {theme === 'dark' ? <IoSunnyOutline /> : <IoMoonOutline />}
+        {theme === 'dark' ? <SunIcon className="p-0" /> : <MoonIcon className="p-0" />}
         <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
           {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
         </span>
@@ -84,13 +84,13 @@ export function UserDropdown() {
           </div>
         </div>
         <DropdownMenuGroup>
-          <ItemComponent icon={<IoPersonOutline />} title="Account Settings" />
-          <ItemComponent icon={<IoSettingsOutline />} title="Project Settings" />
+          <ItemComponent icon={<UserIcon className="p-0" />} title="Account Settings" />
+          <ItemComponent icon={<SettingsGearIcon className="p-0" />} title="Project Settings" />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <ItemComponent icon={<IoDocumentTextOutline />} title="Documentation" />
-          <ItemComponent icon={<IoChatboxOutline />} title="Support" />
+          <ItemComponent icon={<BookTextIcon className="p-0" />} title="Documentation" />
+          <ItemComponent icon={<MessageSquareIcon className="p-0" />} title="Support" />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <div className="flex justify-between items-center mb-2">

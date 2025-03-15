@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { FaGithub } from '@react-icons/all-files/fa/FaGithub';
 import { Avatar } from '../avatar-component';
-import { Link } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function DialogLogin() {

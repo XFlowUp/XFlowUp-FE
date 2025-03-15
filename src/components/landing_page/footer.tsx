@@ -1,6 +1,9 @@
 import Link from 'next/link';
-import { Github, Twitter, Linkedin } from 'lucide-react';
+import { Twitter, Linkedin } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
+import { GithubIcon } from '@/components/ui/github';
+import { FacebookIcon } from '../ui/facebook';
+import { YoutubeIcon } from '../ui/youtube';
 
 export default function Footer() {
   return (
@@ -55,28 +58,28 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium">Connect</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-2">
               <Link
                 href="https://github.com/amanesoft"
                 className="text-muted-foreground transition-colors hover:text-primary"
               >
-                <Github className="h-5 w-5" />
+                <GithubIcon size={20} />
                 <span className="sr-only">GitHub</span>
               </Link>
               <Link
                 href="https://twitter.com/amanesoft"
                 className="text-muted-foreground transition-colors hover:text-primary"
               >
-                <Twitter className="h-5 w-5" />
+                <FacebookIcon size={20} />
                 <span className="sr-only">Twitter</span>
               </Link>
               <Link
                 href="https://linkedin.com/company/amanesoft"
                 className="text-muted-foreground transition-colors hover:text-primary"
               >
-                <Linkedin className="h-5 w-5" />
+                <YoutubeIcon size={20} />
                 <span className="sr-only">LinkedIn</span>
               </Link>
             </div>
