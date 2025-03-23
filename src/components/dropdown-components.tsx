@@ -18,7 +18,8 @@ import { BookTextIcon } from '@/components/ui/book-text';
 import { MessageSquareIcon } from '@/components/ui/message-square';
 import { SunIcon } from '@/components/ui/sun';
 import { MoonIcon } from '@/components/ui/moon';
-
+import { useAuthStore } from '@/shared/stores/auth';
+import useAuth from '@/shared/hooks/useAuth';
 export function ItemComponent({ icon, title }: { icon: ReactNode; title: string }) {
   return (
     <div>
@@ -33,9 +34,13 @@ export function ItemComponent({ icon, title }: { icon: ReactNode; title: string 
 }
 
 export function LogoutButton() {
+  const { logout } = useAuth();
   return (
     <div>
-      <DropdownMenuItem className="px-3 py-2 mt-1 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:border-red-100 disabled:bg-transparent disabled:border-transparent focus-visible:ring-red-600 focus-visible:bg-red-100 h-[34px] group">
+      <DropdownMenuItem
+        className="px-3 py-2 mt-1 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:border-red-100 disabled:bg-transparent disabled:border-transparent focus-visible:ring-red-600 focus-visible:bg-red-100 h-[34px] group"
+        onClick={logout}
+      >
         <span className="ml-1 group-hover:text-red-600 dark:group-hover:text-red-300">Logout</span>
         <IoMdPower className="ml-1 group-hover:text-red-600 dark:group-hover:text-red-300" />
       </DropdownMenuItem>
@@ -62,6 +67,7 @@ export function ThemeToggle() {
 }
 
 export function UserDropdown() {
+  const { user } = useAuthStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -79,7 +85,7 @@ export function UserDropdown() {
             </div>
             <Avatar className="w-12 h-12 mt-3" />
             <div className="flex flex-col items-center justify-center mt-3">
-              <p className="text-sm font-medium">Quang Anh</p>
+              <p className="text-sm font-medium">{user?.name}</p>
             </div>
           </div>
         </div>

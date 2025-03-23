@@ -5,22 +5,21 @@ import useUserInfo from '../api/queries/useUserInfo';
 import { useRouter } from 'next/navigation';
 
 export default function ProtectedRoute({ children }: React.PropsWithChildren<{}>) {
-  const { isLoading, data, isSuccess, isError } = useUserInfo();
+  const { loading: isLoading, data, error } = useUserInfo();
   const setUser = useAuthStore(state => state.setUser);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && isSuccess) {
-      setUser(data?.data);
+    if (!isLoading && data) {
+      setUser(data?.user_info);
     }
-  }, [isLoading, isSuccess]);
+  }, [isLoading, data]);
 
   useEffect(() => {
-    if (!isLoading && isError) {
-      console.log('redirecting');
+    if (!isLoading && error) {
       router.push('/auth/login');
     }
-  }, [isLoading, isError]);
+  }, [isLoading, error]);
 
   if (isLoading) {
     return <div>Loading...</div>;

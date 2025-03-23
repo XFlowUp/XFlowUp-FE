@@ -4,6 +4,7 @@ import './globals.css';
 import TanstackQueryProvider from '@/shared/providers/TanstackQueryProvider';
 import { ThemeProvider } from '@/shared/providers/ThemeProvider';
 import AuthProvider from '@/shared/providers/AuthGuard';
+import GraphQLProvider from '@/shared/providers/GraphQL';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,18 +28,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TanstackQueryProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </TanstackQueryProvider>
-        </ThemeProvider>
-      </body>
+      <TanstackQueryProvider>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <GraphQLProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </GraphQLProvider>
+          </ThemeProvider>
+        </body>
+      </TanstackQueryProvider>
     </html>
   );
 }

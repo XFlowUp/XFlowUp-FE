@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { IoSettingsOutline } from '@react-icons/all-files/io5/IoSettingsOutline';
 import { IoMdAdd } from '@react-icons/all-files/io/IoMdAdd';
@@ -6,8 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/avatar-component';
 import { UserDropdown } from '@/components/dropdown-components';
 import { SettingsGearIcon } from '@/components/ui/settings-gear';
+import { useAuthStore } from '@/shared/stores/auth';
+import Projects from './_components/Projects';
 
 export default function Dashboard() {
+  const { user } = useAuthStore();
   return (
     <div className="flex flex-col min-h-screen">
       <div className="container mx-auto px-5 lg:px-8 max-w-6xl">
@@ -33,7 +38,9 @@ export default function Dashboard() {
                     <div className="flex space-x-4 items-center w-full overflow-hidden">
                       <Avatar />
                       <div className="flex items-center gap-3">
-                        <p className="text-h2 font-medium truncate tracking-[-0.24px]">Quang Anh</p>
+                        <p className="text-h2 font-medium truncate tracking-[-0.24px]">
+                          {user?.name}
+                        </p>
                         <p className="flex items-center rounded px-2 py-1 uppercase text-[11px] font-medium leading-none border bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
                           <span className="inline-block mt-px">Trial</span>
                         </p>
@@ -70,19 +77,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="grid gap-4">
-              <hr className="w-full border-t border-gray-100 dark:border-gray-800 my-0" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card className="border rounded-lg p-6 h-45 transition-all duration-200 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
-                  <div className="flex flex-col gap-2 h-full relative z-10">
-                    <div className="flex flex-col flex-grow">
-                      <p className="font-medium mb-3">Web call</p>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">3 services</p>
-                  </div>
-                </Card>
-              </div>
-            </div>
+            <Projects />
           </main>
         </div>
       </div>

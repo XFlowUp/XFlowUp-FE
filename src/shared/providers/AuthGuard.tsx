@@ -9,7 +9,7 @@ type Props = {
   children: React.ReactNode;
 };
 export default function AuthProvider({ children, redirect = false }: Props) {
-  const { isLoading: loadingUser } = useUserInfo();
+  const { loading: loadingUser } = useUserInfo();
   const router = useRouter();
 
   return <>{children}</>;
