@@ -6,12 +6,13 @@ const GET_PROJECTS = gql(`
       ... on ProjectSuccess {
         result
         data {
-          id
-          name
-          slug
-          url
-          created_at
-          updated_at
+            id
+            name
+            description
+            slug
+            url
+            created_at
+            updated_at
         }
       }
       ... on ProjectError {

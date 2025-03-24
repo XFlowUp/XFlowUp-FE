@@ -1,10 +1,19 @@
 import { Card } from '@/components/ui/card';
 import useProjects from '@/shared/api/queries/useProjects';
 import { ProjectSuccess } from '@/gql/graphql';
-import React from 'react';
+import React, { useEffect } from 'react';
 
-export default function Projects() {
-  const { data, loading, error } = useProjects();
+interface ProjectsProps {
+  refetchTrigger: number;
+}
+
+export default function Projects({ refetchTrigger }: ProjectsProps) {
+  const { data, loading, error, refetch } = useProjects();
+  useEffect(() => {
+    if (refetchTrigger) {
+      refetch();
+    }
+  }, [refetchTrigger, refetch]);
   return (
     <>
       <div className="grid gap-4">
@@ -19,7 +28,10 @@ export default function Projects() {
               >
                 <div className="flex flex-col gap-2 h-full relative z-10">
                   <div className="flex flex-col flex-grow">
-                    <p className="font-medium mb-3">{project.name}</p>
+                    <p className="font-medium mb-2">{project.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {project.description}
+                    </p>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{project.slug}</p>
                 </div>

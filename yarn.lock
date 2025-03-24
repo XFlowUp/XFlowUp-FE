@@ -488,7 +488,7 @@
     "@graphql-codegen/plugin-helpers" "^5.0.3"
     tslib "~2.6.0"
 
-"@graphql-codegen/cli@^5.0.5":
+"@graphql-codegen/cli@5.0.5":
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/cli/-/cli-5.0.5.tgz#9a29b2c7a459e333fbae025dff951927fafe5d2f"
   integrity sha512-9p9SI5dPhJdyU+O6p1LUqi5ajDwpm6pUhutb1fBONd0GZltLFwkgWFiFtM6smxkYXlYVzw61p1kTtwqsuXO16w==
@@ -529,7 +529,7 @@
     yaml "^2.3.1"
     yargs "^17.0.0"
 
-"@graphql-codegen/client-preset@^4.6.0", "@graphql-codegen/client-preset@^4.7.0":
+"@graphql-codegen/client-preset@4.7.0", "@graphql-codegen/client-preset@^4.6.0":
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/client-preset/-/client-preset-4.7.0.tgz#2d9422e7d51bc3d0e2134daa056c75fd0d7e7ed6"
   integrity sha512-U15GrsvSd0k6Wgo3vFN/oJMTMWUtbEkjQhifrfzkJpvUK+cqyB+C/SgLdSbzyxKd3GyMl8kfwgGr5K+yfksQ/g==
@@ -1377,6 +1377,13 @@
   integrity sha512-EJUrI8yYh7WOjNOqpoJaf1jlFIH2LvtgAl+YcFqNCa+4hj64ZXmPkAKOFs/ukjz3byN6bdb/AVUqHkI8/uWWMA==
   dependencies:
     "@radix-ui/react-use-layout-effect" "1.1.0"
+
+"@radix-ui/react-label@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-2.1.2.tgz#994a5d815c2ff46e151410ae4e301f1b639f9971"
+  integrity sha512-zo1uGMTaNlHehDyFQcDZXRJhUPDuukcnHz0/jnrup0JA6qL+AFpAnty+7VKa9esuU5xTblAZzTGYJKSKaBxBhw==
+  dependencies:
+    "@radix-ui/react-primitive" "2.0.2"
 
 "@radix-ui/react-menu@2.1.6":
   version "2.1.6"
@@ -4643,10 +4650,10 @@ next-auth@^5.0.0-beta.25:
   dependencies:
     "@auth/core" "0.37.2"
 
-next-themes@^0.4.4:
-  version "0.4.4"
-  resolved "https://registry.npmjs.org/next-themes/-/next-themes-0.4.4.tgz"
-  integrity sha512-LDQ2qIOJF0VnuVrrMSMLrWGjRMkq+0mpgl6e0juCLqdJ+oo8Q84JRWT6Wh11VDQKkMMe+dVzDKLWs5n87T+PkQ==
+next-themes@^0.4.6:
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.4.6.tgz#8d7e92d03b8fea6582892a50a928c9b23502e8b6"
+  integrity sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==
 
 next@15.2.1:
   version "15.2.1"
@@ -5539,6 +5546,11 @@ snake-case@^3.0.4:
   dependencies:
     dot-case "^3.0.4"
     tslib "^2.0.3"
+
+sonner@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-2.0.1.tgz#f41774b2e0ee770152458a336570a4d577d03e6f"
+  integrity sha512-FRBphaehZ5tLdLcQ8g2WOIRE+Y7BCfWi5Zyd8bCvBjiW8TxxAyoWZIxS661Yz6TGPqFQ4VLzOF89WEYhfynSFQ==
 
 source-map-js@^1.0.2, source-map-js@^1.2.1:
   version "1.2.1"

@@ -1,18 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { IoSettingsOutline } from '@react-icons/all-files/io5/IoSettingsOutline';
-import { IoMdAdd } from '@react-icons/all-files/io/IoMdAdd';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/avatar-component';
 import { UserDropdown } from '@/components/dropdown-components';
 import { SettingsGearIcon } from '@/components/ui/settings-gear';
 import { useAuthStore } from '@/shared/stores/auth';
 import Projects from './_components/Projects';
+import CreateProjectButton from '@/app/(fe)/(dashboard)/dashboard/_components/CreateProjectButton';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
+  const [projectRefreshKey, setProjectRefreshKey] = useState(0);
+
+  const handleProjectCreated = () => {
+    setProjectRefreshKey(prev => prev + 1);
+  };
   return (
     <div className="flex flex-col min-h-screen">
       <div className="container mx-auto px-5 lg:px-8 max-w-6xl">
@@ -56,9 +60,7 @@ export default function Dashboard() {
                       <Button variant="outline" size="icon">
                         <SettingsGearIcon />
                       </Button>
-                      <Button>
-                        <IoMdAdd /> New
-                      </Button>
+                      <CreateProjectButton onProjectCreated={handleProjectCreated} />
                     </div>
                   </div>
                 </div>
@@ -77,7 +79,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <Projects />
+            <Projects refetchTrigger={projectRefreshKey} />
           </main>
         </div>
       </div>
