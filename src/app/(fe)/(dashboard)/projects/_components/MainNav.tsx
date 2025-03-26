@@ -1,47 +1,38 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import { Avatar } from '@/components/avatar-component';
+import useEnvironments from '@/shared/api/queries/useEnvironments';
+import ProjectsDropdown from './ProjectsDropdown';
+import CreateEnvironmentDialog from './CreateEnvironmentDialog';
+import EnvironmentsDropdown from './EnvironmentsDropdown';
+import Link from 'next/link';
 
-export function MainNav() {
+interface MainNavProps {
+  slug: string;
+}
+
+export function MainNav(props: MainNavProps) {
+  const { slug } = props;
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const { refetch } = useEnvironments(slug);
+
   return (
     <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
+      <Link className="flex items-center space-x-2" href="/dashboard">
         <Avatar />
-      </div>
+      </Link>
       <nav className="flex items-center space-x-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 gap-1 text-base">
-              Web call <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>Web call</DropdownMenuItem>
-            <DropdownMenuItem>API call</DropdownMenuItem>
-            <DropdownMenuItem>Database</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 gap-1 text-base">
-              production <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem>production</DropdownMenuItem>
-            <DropdownMenuItem>staging</DropdownMenuItem>
-            <DropdownMenuItem>development</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ProjectsDropdown slug={slug} />
+        <EnvironmentsDropdown slug={slug} onNewEnvironmentClick={() => setCreateDialogOpen(true)} />
       </nav>
+
+      <CreateEnvironmentDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        slug={slug}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export default function ProjectsPage({ params }: { params: { slug: string } }) {
       <Tabs defaultValue="architecture" className="w-full h-full gap-0">
         <header className="border-b bg-white dark:bg-gray-950">
           <div className="flex h-16 items-center px-6">
-            <MainNav />
+            <MainNav slug={params.slug} />
             <div className="flex-1" />
             <div className="flex items-center space-x-4">
               <TabsList className="bg-gray-100/80 dark:bg-gray-800/50 rounded-lg p-1">

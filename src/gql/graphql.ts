@@ -508,6 +508,18 @@ export type UserInfo = {
   profile_pic_url?: Maybe<Scalars['String']['output']>;
 };
 
+export type CreateEnvironmentMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  environment: AddEnvironmentsInput;
+}>;
+
+export type CreateEnvironmentMutation = {
+  __typename?: 'Mutation';
+  add_environment:
+    | { __typename?: 'AddEnvironmentsError'; status: Status; message?: string | null }
+    | { __typename?: 'AddEnvironmentsSuccess'; status: Status };
+};
+
 export type CreateProjectMutationMutationVariables = Exact<{
   name: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
@@ -540,6 +552,21 @@ export type DeleteProjectMutationMutation = {
   delete_project:
     | { __typename?: 'DeleteProjectError'; message: string; status: Status }
     | { __typename?: 'DeleteProjectSuccess'; message: string; status: Status };
+};
+
+export type EnvironmentsQueryQueryVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+}>;
+
+export type EnvironmentsQueryQuery = {
+  __typename?: 'Query';
+  environments:
+    | { __typename?: 'GetEnvironmentsError'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetEnvironmentsSuccess';
+        status: Status;
+        environments: Array<{ __typename?: 'Environment'; id: string; name: string }>;
+      };
 };
 
 export type ProjectsQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -604,6 +631,85 @@ export type GetUserInfoQueryQuery = {
   };
 };
 
+export const CreateEnvironmentDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateEnvironment' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'environment' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'AddEnvironmentsInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'add_environment' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'environment' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'environment' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'AddEnvironmentsSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'AddEnvironmentsError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateEnvironmentMutation, CreateEnvironmentMutationVariables>;
 export const CreateProjectMutationDocument = {
   kind: 'Document',
   definitions: [
@@ -765,6 +871,85 @@ export const DeleteProjectMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteProjectMutationMutation, DeleteProjectMutationMutationVariables>;
+export const EnvironmentsQueryDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'EnvironmentsQuery' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'environments' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetEnvironmentsSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'environments' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                          ],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetEnvironmentsError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EnvironmentsQueryQuery, EnvironmentsQueryQueryVariables>;
 export const ProjectsQueryDocument = {
   kind: 'Document',
   definitions: [
