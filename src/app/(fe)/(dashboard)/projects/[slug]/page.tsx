@@ -6,7 +6,9 @@ import { UserDropdown } from '@/components/user-nav';
 import { Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function ProjectsPage({ params }: { params: { slug: string } }) {
+export default async function ProjectsPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Tabs defaultValue="architecture" className="w-full h-full gap-0">

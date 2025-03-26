@@ -29,7 +29,7 @@ const GET_REPOSITORIES = gql(
     }`
 );
 
-export default function useProjects() {
+export default function useRepositories() {
   return useQuery(GET_REPOSITORIES, {
     fetchPolicy: 'cache-first',
   });
