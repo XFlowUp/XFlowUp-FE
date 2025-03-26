@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/avatar-component';
-import { UserDropdown } from '@/components/dropdown-components';
+import { UserDropdown } from '@/components/user-nav';
 import { SettingsGearIcon } from '@/components/ui/settings-gear';
 import { useAuthStore } from '@/shared/stores/auth';
 import Projects from './_components/Projects';

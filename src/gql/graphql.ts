@@ -564,6 +564,34 @@ export type ProjectsQueryQuery = {
       };
 };
 
+export type GetRepositoriesQueryVariables = Exact<{
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  sortBy?: InputMaybe<GithubRepositorySortBy>;
+  sortDirection?: InputMaybe<GithubRepositorySortDirection>;
+}>;
+
+export type GetRepositoriesQuery = {
+  __typename?: 'Query';
+  get_repositories:
+    | { __typename?: 'GetRepositoryErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetRepositorySuccessResult';
+        status: Status;
+        data: Array<{
+          __typename?: 'RepositoryObject';
+          id: number;
+          name: string;
+          description?: string | null;
+          url: string;
+          git_url: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+          owner: { __typename?: 'Owner'; id: number; login: string; avatar_url: string };
+        }>;
+      };
+};
+
 export type GetUserInfoQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetUserInfoQueryQuery = {
@@ -804,6 +832,132 @@ export const ProjectsQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<ProjectsQueryQuery, ProjectsQueryQueryVariables>;
+export const GetRepositoriesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetRepositories' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'sortBy' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'GithubRepositorySortBy' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'sortDirection' } },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'GithubRepositorySortDirection' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_repositories' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'per_page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'sortBy' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'sortBy' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'sortDirection' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'sortDirection' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetRepositorySuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'owner' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'login' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'avatar_url' } },
+                                ],
+                              },
+                            },
+                            { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'git_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'created_at' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'updated_at' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetRepositoryErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetRepositoriesQuery, GetRepositoriesQueryVariables>;
 export const GetUserInfoQueryDocument = {
   kind: 'Document',
   definitions: [
