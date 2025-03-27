@@ -26,6 +26,7 @@ import { UndoIcon } from '@/components/ui/undo';
 import { RedoIcon } from '@/components/ui/redo';
 import { TerminalIcon } from '@/components/ui/terminal';
 import { ActivityIcon } from '@/components/ui/activity';
+import CreateServiceButton from '@/app/(fe)/(dashboard)/projects/_components/CreateServiceButton';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -268,14 +269,7 @@ function Flow() {
         />
 
         <Panel position="top-right">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create
-          </Button>
+          <CreateServiceButton />
         </Panel>
 
         <Panel position="top-left" className="flex flex-col gap-2">

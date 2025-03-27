@@ -554,6 +554,19 @@ export type DeleteProjectMutationMutation = {
     | { __typename?: 'DeleteProjectSuccess'; message: string; status: Status };
 };
 
+export type DatabaseServicesQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type DatabaseServicesQueryQuery = {
+  __typename?: 'Query';
+  get_database_services:
+    | { __typename?: 'GetDatabaseServiceError'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetDatabaseServiceSuccess';
+        status: Status;
+        data: Array<{ __typename?: 'DatabaseService'; id: string; name: string; icon: string }>;
+      };
+};
+
 export type EnvironmentsQueryQueryVariables = Exact<{
   projectSlug: Scalars['String']['input'];
 }>;
@@ -871,6 +884,69 @@ export const DeleteProjectMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteProjectMutationMutation, DeleteProjectMutationMutationVariables>;
+export const DatabaseServicesQueryDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'DatabaseServicesQuery' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_database_services' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetDatabaseServiceSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'icon' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetDatabaseServiceError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DatabaseServicesQueryQuery, DatabaseServicesQueryQueryVariables>;
 export const EnvironmentsQueryDocument = {
   kind: 'Document',
   definitions: [

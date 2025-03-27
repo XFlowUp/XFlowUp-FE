@@ -1,5 +1,6 @@
 import { gql } from '@/gql/gql';
 import { useQuery } from '@apollo/client';
+import { GithubRepositorySortBy, GithubRepositorySortDirection } from '@/gql/graphql';
 
 const GET_REPOSITORIES = gql(
   `query GetRepositories($page: Int, $perPage: Int, $sortBy: GithubRepositorySortBy, $sortDirection: GithubRepositorySortDirection) {
@@ -29,8 +30,19 @@ const GET_REPOSITORIES = gql(
     }`
 );
 
-export default function useRepositories() {
+export default function useRepositories(options?: {
+  page?: number;
+  perPage?: number;
+  sortBy?: GithubRepositorySortBy;
+  sortDirection?: GithubRepositorySortDirection;
+}) {
   return useQuery(GET_REPOSITORIES, {
+    variables: {
+      page: options?.page || 1,
+      perPage: options?.perPage || 20,
+      sortBy: options?.sortBy || GithubRepositorySortBy.Updated,
+      sortDirection: options?.sortDirection || GithubRepositorySortDirection.Desc,
+    },
     fetchPolicy: 'cache-first',
   });
 }
