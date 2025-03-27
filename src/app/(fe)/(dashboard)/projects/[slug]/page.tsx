@@ -10,9 +10,9 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
   const params = await props.params;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Tabs defaultValue="architecture" className="w-full h-full gap-0">
-        <header className="border-b bg-white dark:bg-gray-950">
+    <div className="flex h-screen flex-col bg-background overflow-hidden">
+      <Tabs defaultValue="architecture" className="w-full h-full flex flex-col gap-0">
+        <header className="border-b bg-white dark:bg-gray-950 flex-shrink-0">
           <div className="flex h-16 items-center px-6">
             <MainNav slug={params.slug} />
             <div className="flex-1" />
@@ -63,17 +63,29 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
             </div>
           </div>
         </header>
-        <main className="flex-1 bg-gray-50 dark:bg-gray-900">
-          <TabsContent value="architecture" className="h-[calc(100vh-64px)] p-0 m-0">
+        <main className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+          <TabsContent
+            value="architecture"
+            className="h-full p-0 m-0 overflow-hidden data-[state=active]:block"
+          >
             <ArchitectureView />
           </TabsContent>
-          <TabsContent value="observability" className="p-0 m-0">
+          <TabsContent
+            value="observability"
+            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
+          >
             <div className="p-6">Observability content</div>
           </TabsContent>
-          <TabsContent value="logs" className="p-0 m-0">
+          <TabsContent
+            value="logs"
+            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
+          >
             <div className="p-6">Logs content</div>
           </TabsContent>
-          <TabsContent value="settings" className="p-0 m-0">
+          <TabsContent
+            value="settings"
+            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
+          >
             <div className="p-6">Settings content</div>
           </TabsContent>
         </main>

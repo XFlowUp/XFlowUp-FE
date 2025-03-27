@@ -11,6 +11,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import useProjects from '@/shared/api/queries/useProjects';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const ProjectsDropdown = ({ slug }: { slug: string }) => {
   const router = useRouter();
@@ -21,6 +22,15 @@ const ProjectsDropdown = ({ slug }: { slug: string }) => {
       ? projectsData.all_projects.data
       : [];
 
+  const currentProject = projects.find(p => p.slug === slug);
+
+  // Set page title based on project name
+  useEffect(() => {
+    if (currentProject) {
+      document.title = `${currentProject.name} | XflowUp`;
+    }
+  }, [currentProject]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,8 +39,7 @@ const ProjectsDropdown = ({ slug }: { slug: string }) => {
             <Skeleton className="h-8 w-30" />
           ) : (
             <>
-              {projects.find(p => p.slug === slug)?.name || slug}{' '}
-              <ChevronDownIcon className="h-4 w-4" />
+              {currentProject?.name || slug} <ChevronDownIcon className="h-4 w-4" />
             </>
           )}
         </Button>
