@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
 import useUserInfo from '../api/queries/useUserInfo';
 import { useRouter } from 'next/navigation';
+import { LoadingPageWithDots } from '@/components/ui/loading-spinner';
 
 export default function ProtectedRoute({ children }: React.PropsWithChildren<{}>) {
   const { loading: isLoading, data, error } = useUserInfo();
@@ -22,7 +23,7 @@ export default function ProtectedRoute({ children }: React.PropsWithChildren<{}>
   }, [isLoading, error]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingPageWithDots />;
   }
 
   return <>{children}</>;
