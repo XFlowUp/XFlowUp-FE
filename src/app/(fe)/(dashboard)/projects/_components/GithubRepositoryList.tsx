@@ -141,7 +141,7 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
       >
         <Input
           placeholder="Search for GitHub repositories..."
-          className="text-base px-6 py-4 h-auto min-h-[50px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex items-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
+          className="text-base px-6 py-4 h-auto min-h-[50px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex items-center border-b border-gray-200 dark:border-neutral-700 flex-shrink-0 rounded-none"
           style={{ fontSize: '16px', backgroundColor: 'transparent' }}
         />
       </motion.div>

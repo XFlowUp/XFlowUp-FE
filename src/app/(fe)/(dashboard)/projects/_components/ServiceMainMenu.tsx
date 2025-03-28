@@ -130,7 +130,7 @@ function Divider({
   return (
     <div ref={ref}>
       <motion.div
-        className="border-t border-gray-200 dark:border-gray-700 flex-shrink-0"
+        className="border-t border-gray-200 dark:border-neutral-700 flex-shrink-0"
         initial={{ opacity: 0 }}
         animate={isVisible ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 0.3 }}

@@ -107,7 +107,7 @@ export default function CreateServiceButton() {
           )}
         </div>
 
-        <div className="flex flex-col bg-gray-100 dark:bg-gray-800 rounded-sm shadow-lg relative overflow-hidden flex-grow h-[400px]">
+        <div className="flex flex-col bg-gray-100 dark:bg-neutral-800 rounded-sm shadow-lg relative overflow-hidden flex-grow h-[400px]">
           {currentScreen === ServiceDialogScreen.MAIN_MENU && (
             <motion.div
               className="absolute inset-0 w-full h-full"
