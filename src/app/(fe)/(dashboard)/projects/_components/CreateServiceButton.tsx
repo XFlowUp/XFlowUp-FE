@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import ServiceMainMenu from './ServiceMainMenu';
 import GithubRepositoryList from './GithubRepositoryList';
 import DatabaseServiceList from './DatabaseServiceList';
@@ -47,7 +48,12 @@ export default function CreateServiceButton() {
       </DialogTrigger>
       <DialogContent className="flex flex-col w-[500px] overflow-hidden max-h-[80vh]">
         <DialogHeader className="flex-shrink-0">
-          <div className="flex flex-col items-center space-y-2 sm:space-y-4">
+          <motion.div
+            className="flex flex-col items-center space-y-2 sm:space-y-4"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+          >
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
               <path
                 fillRule="evenodd"
@@ -71,50 +77,81 @@ export default function CreateServiceButton() {
             </svg>
             <DialogTitle className="font-bold text-[40px]">New Service</DialogTitle>
             <p className="text-gray-600 text-center ">Deploy your app to production effortlessly</p>
-          </div>
+          </motion.div>
         </DialogHeader>
 
         <div className="flex min-h-[40px] items-center relative flex-shrink-0">
           {currentScreen !== ServiceDialogScreen.MAIN_MENU && (
             <>
-              <button
+              <motion.button
                 onClick={handleBackToMainMenu}
                 className="flex items-center text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <ChevronLeft size={20} className="mr-1" />
                 <span>Back</span>
-              </button>
-              <h3 className="absolute w-full text-center font-semibold text-lg pointer-events-none">
+              </motion.button>
+              <motion.h3
+                className="absolute w-full text-center font-semibold text-lg pointer-events-none"
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.25, delay: 0.15, ease: [0.32, 0.72, 0, 1] }}
+              >
                 {currentScreen === ServiceDialogScreen.DATABASE_SERVICES
                   ? 'Database Services'
                   : 'GitHub Repositories'}
-              </h3>
+              </motion.h3>
             </>
           )}
         </div>
 
-        <div className="flex flex-col bg-gray-100 dark:bg-gray-800 rounded-sm shadow-lg relative overflow-hidden flex-grow min-h-0">
+        <div className="flex flex-col bg-gray-100 dark:bg-gray-800 rounded-sm shadow-lg relative overflow-hidden flex-grow h-[400px]">
           {currentScreen === ServiceDialogScreen.MAIN_MENU && (
-            <ServiceMainMenu
-              onSelectGithub={() => setCurrentScreen(ServiceDialogScreen.GITHUB_REPOS)}
-              onSelectDatabase={() => setCurrentScreen(ServiceDialogScreen.DATABASE_SERVICES)}
-            />
+            <motion.div
+              className="absolute inset-0 w-full h-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ServiceMainMenu
+                onSelectGithub={() => setCurrentScreen(ServiceDialogScreen.GITHUB_REPOS)}
+                onSelectDatabase={() => setCurrentScreen(ServiceDialogScreen.DATABASE_SERVICES)}
+              />
+            </motion.div>
           )}
 
           {currentScreen === ServiceDialogScreen.DATABASE_SERVICES && (
-            <DatabaseServiceList
-              onSelectService={service => {
-                console.log('Selected database service:', service);
-              }}
-            />
+            <motion.div
+              className="absolute inset-0 w-full h-full"
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <DatabaseServiceList
+                onSelectService={service => {
+                  console.log('Selected database service:', service);
+                }}
+              />
+            </motion.div>
           )}
 
           {currentScreen === ServiceDialogScreen.GITHUB_REPOS && (
-            <GithubRepositoryList
-              onSelectRepository={repo => {
-                console.log('Selected repository:', repo);
-              }}
-            />
+            <motion.div
+              className="absolute inset-0 w-full h-full"
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <GithubRepositoryList
+                onSelectRepository={repo => {
+                  console.log('Selected repository:', repo);
+                }}
+              />
+            </motion.div>
           )}
         </div>
       </DialogContent>

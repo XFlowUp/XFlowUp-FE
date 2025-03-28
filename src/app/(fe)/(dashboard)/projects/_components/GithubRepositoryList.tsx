@@ -3,6 +3,7 @@ import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { Input } from '@/components/ui/input';
 import { ChevronRightIcon } from '@/components/ui/chevron-right';
 import useRepositories from '@/shared/api/queries/useRepositories';
+import { motion } from 'motion/react';
 
 interface GithubRepositoryListProps {
   onSelectRepository?: (repo: any) => void;
@@ -16,6 +17,7 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
   const loadingMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleItems, setVisibleItems] = useState<Record<string, boolean>>({});
 
   const {
     data: repositoriesData,
@@ -110,12 +112,19 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
     };
   }, [loading, isLoadingMore, hasMoreRepos, loadMoreRepos]);
 
+  const handleItemObserver = useCallback((id: string, inView: boolean) => {
+    if (inView) {
+      setVisibleItems(prev => ({ ...prev, [id]: true }));
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       setPage(1);
       setRepos([]);
       setHasMoreRepos(true);
       setIsLoadingMore(false);
+      setVisibleItems({});
       if (observerRef.current) {
         observerRef.current.disconnect();
         observerRef.current = null;
@@ -125,28 +134,28 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Input
-        placeholder="Search for GitHub repositories..."
-        className="text-base px-6 py-4 h-auto min-h-[50px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex items-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
-        style={{ fontSize: '16px', backgroundColor: 'transparent' }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Input
+          placeholder="Search for GitHub repositories..."
+          className="text-base px-6 py-4 h-auto min-h-[50px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex items-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
+          style={{ fontSize: '16px', backgroundColor: 'transparent' }}
+        />
+      </motion.div>
       <div ref={scrollContainerRef} className="p-3 overflow-y-auto flex-grow">
         {repos.length > 0 ? (
           <>
             {repos.map(repo => (
-              <div
+              <RepoItem
                 key={repo.id}
-                className="flex justify-between items-center px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md cursor-pointer transition-colors duration-150"
-                onClick={() => onSelectRepository?.(repo)}
-              >
-                <div className="flex items-center gap-2">
-                  <IoLogoGithub size={20} className="text-gray-900 dark:text-white flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-white" style={{ fontSize: '16px' }}>
-                    {repo.name}
-                  </span>
-                </div>
-                <ChevronRightIcon size={20} className="text-gray-500" />
-              </div>
+                repo={repo}
+                onObserve={handleItemObserver}
+                isVisible={visibleItems[repo.id] || false}
+                onSelect={onSelectRepository}
+              />
             ))}
 
             {hasMoreRepos && (
@@ -155,24 +164,94 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
                 className="h-10 w-full flex items-center justify-center mt-2"
               >
                 {isLoadingMore && (
-                  <div className="w-6 h-6 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
+                  <motion.div
+                    className="w-6 h-6 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  ></motion.div>
                 )}
               </div>
             )}
           </>
         ) : !loading ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-500">
+          <motion.div
+            className="flex flex-col items-center justify-center h-40 text-gray-500"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             <IoLogoGithub size={36} className="mb-2" />
             <p>No repositories found</p>
-          </div>
+          </motion.div>
         ) : null}
 
         {loading && !isLoadingMore && (
-          <div className="flex justify-center p-2">
+          <motion.div
+            className="flex justify-center p-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="w-6 h-6 border-2 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
-          </div>
+          </motion.div>
         )}
       </div>
+    </div>
+  );
+}
+
+function RepoItem({
+  repo,
+  onObserve,
+  isVisible,
+  onSelect,
+}: {
+  repo: any;
+  onObserve: (id: string, inView: boolean) => void;
+  isVisible: boolean;
+  onSelect?: (repo: any) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        onObserve(repo.id, entry.isIntersecting);
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '0px 0px -50px 0px',
+      }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [repo.id, onObserve]);
+
+  return (
+    <div ref={ref}>
+      <motion.div
+        className="flex justify-between items-center px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md cursor-pointer transition-colors duration-150"
+        onClick={() => onSelect?.(repo)}
+        initial={{ opacity: 0, y: 20 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex items-center gap-2">
+          <IoLogoGithub size={20} className="text-gray-900 dark:text-white flex-shrink-0" />
+          <span className="text-gray-700 dark:text-white" style={{ fontSize: '16px' }}>
+            {repo.name}
+          </span>
+        </div>
+        <ChevronRightIcon size={20} className="text-gray-500" />
+      </motion.div>
     </div>
   );
 }

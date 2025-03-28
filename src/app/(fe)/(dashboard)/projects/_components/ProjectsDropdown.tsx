@@ -24,7 +24,6 @@ const ProjectsDropdown = ({ slug }: { slug: string }) => {
 
   const currentProject = projects.find(p => p.slug === slug);
 
-  // Set page title based on project name
   useEffect(() => {
     if (currentProject) {
       document.title = `${currentProject.name} | XflowUp`;

@@ -209,9 +209,8 @@ function Flow() {
   useEffect(() => {
     const updateMaxHeight = () => {
       if (activityPanelRef.current) {
-        // Calculate available height (viewport height - header height - gap)
-        const headerHeight = 64; // Header height
-        const topGap = 80; // Gap from top buttons
+        const headerHeight = 64;
+        const topGap = 80;
         const maxHeight = window.innerHeight - headerHeight - topGap;
         activityPanelRef.current.style.maxHeight = `${maxHeight}px`;
       }
