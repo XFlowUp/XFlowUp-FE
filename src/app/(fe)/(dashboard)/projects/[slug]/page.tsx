@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserDropdown } from '@/components/user-nav';
 import { Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import TrialPlanHeader from '@/app/(fe)/(dashboard)/projects/_components/TrialPlanHeader';
 
 export default async function ProjectsPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -43,14 +44,7 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
                   Settings
                 </TabsTrigger>
               </TabsList>
-              <Badge
-                variant="outline"
-                className="bg-green-50 dark:bg-green-900/30 text-green-500 dark:text-green-400 border-green-200 dark:border-green-800 px-3 py-1.5 flex justify-center items-center gap-3"
-              >
-                <span className="font-medium">TRIAL</span>
-                <span className="text-green-300 dark:text-green-700">|</span>
-                <span className="text-green-500 dark:text-green-400">$ 4.68</span>
-              </Badge>
+              <TrialPlanHeader />
               <Button
                 variant="outline"
                 size="sm"

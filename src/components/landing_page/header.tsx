@@ -23,7 +23,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import DialogLogin from '@/components/landing_page/dialog-login';
+import LoginButton from '@/components/landing_page/login-button';
 import { useRouter } from 'next/navigation';
 
 const products: { title: string; href: string; description: string }[] = [
@@ -150,12 +150,19 @@ export function Header() {
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/pricing" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Pricing
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </nav>
         </div>
         <div className="hidden md:flex items-center">
-          <DialogLogin />
+          <LoginButton />
         </div>
 
         <Drawer>
@@ -207,7 +214,7 @@ export function Header() {
             </div>
             <DrawerFooter>
               <DrawerClose asChild>
-                <DialogLogin />
+                <LoginButton />
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>

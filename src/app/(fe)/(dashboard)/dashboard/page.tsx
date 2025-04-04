@@ -1,5 +1,4 @@
 'use client';
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/avatar-component';
@@ -9,6 +8,7 @@ import { useAuthStore } from '@/shared/stores/auth';
 import Projects from './_components/Projects';
 import CreateProjectButton from '@/app/(fe)/(dashboard)/dashboard/_components/CreateProjectButton';
 import { useState } from 'react';
+import { router } from 'next/client';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
@@ -75,7 +75,9 @@ export default function Dashboard() {
                     </div>
                     <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
                   </div>
-                  <Button>Choose a plan</Button>
+                  <Link href="/pricing">
+                    <Button>Choose a plan</Button>
+                  </Link>
                 </div>
               </div>
             </div>
