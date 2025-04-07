@@ -88,7 +88,7 @@ export default function Projects({ refetchTrigger }: ProjectsProps) {
           transition={{ delay: 0.3 }}
           className="text-center text-gray-500 dark:text-gray-400 mt-4"
         >
-          <p>Không có dự án nào.</p>
+          <p>No projects found.</p>
         </motion.div>
       ) : null}
     </>

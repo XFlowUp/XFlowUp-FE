@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Twitter, Linkedin } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
 import { GithubIcon } from '@/components/ui/github';
 import { FacebookIcon } from '../ui/facebook';

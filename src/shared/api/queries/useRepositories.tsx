@@ -18,6 +18,7 @@ const GET_REPOSITORIES = gql(
                     description
                     url
                     git_url
+                    is_private
                     created_at
                     updated_at
                 }

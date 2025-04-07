@@ -20,7 +20,7 @@ export function MainNav(props: MainNavProps) {
   return (
     <div className="flex items-center space-x-4">
       <Link className="flex items-center space-x-2" href="/dashboard">
-        <Avatar />
+        <Avatar src="https://github.com/shadcn.png" />
       </Link>
       <nav className="flex items-center space-x-2">
         <ProjectsDropdown slug={slug} />

@@ -2,8 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 import LoginButton from './components/LoginButton';
 export const metadata: Metadata = {
-  title: 'Login',
-  description: 'Login page',
+  title: 'Login to XFlowUp | XFlowUp',
+  description: 'Login to XFlowUp to access your dashboard and manage your account.',
 };
 
 export default function LoginPage() {

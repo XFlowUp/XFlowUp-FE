@@ -24,7 +24,6 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import LoginButton from '@/components/landing_page/login-button';
-import { useRouter } from 'next/navigation';
 
 const products: { title: string; href: string; description: string }[] = [
   {

@@ -154,6 +154,7 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
                 repo={repo}
                 onObserve={handleItemObserver}
                 isVisible={visibleItems[repo.id] || false}
+                isPrivate={repo.is_private}
                 onSelect={onSelectRepository}
               />
             ))}
@@ -204,11 +205,13 @@ function RepoItem({
   repo,
   onObserve,
   isVisible,
+  isPrivate,
   onSelect,
 }: {
   repo: any;
   onObserve: (id: string, inView: boolean) => void;
   isVisible: boolean;
+  isPrivate: boolean;
   onSelect?: (repo: any) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -246,9 +249,22 @@ function RepoItem({
       >
         <div className="flex items-center gap-2">
           <IoLogoGithub size={20} className="text-gray-900 dark:text-white flex-shrink-0" />
-          <span className="text-gray-700 dark:text-white" style={{ fontSize: '16px' }}>
-            {repo.name}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-gray-700 dark:text-white" style={{ fontSize: '16px' }}>
+              {repo.name}
+            </span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  isPrivate
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                    : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                }`}
+              >
+                {isPrivate ? 'Private' : 'Public'}
+              </span>
+            </div>
+          </div>
         </div>
         <ChevronRightIcon size={20} className="text-gray-500" />
       </motion.div>

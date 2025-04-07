@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'next/navigation';
 export default function useAuth() {
@@ -14,7 +13,7 @@ export default function useAuth() {
 
   const logout = () => {
     logoutFromStore();
-    router.push('/auth/login');
+    router.push('/');
   };
 
   return { user, isAuthenticated, isLoading, setIsLoading, setUser, logout };

@@ -8,7 +8,6 @@ import { useAuthStore } from '@/shared/stores/auth';
 import Projects from './_components/Projects';
 import CreateProjectButton from '@/app/(fe)/(dashboard)/dashboard/_components/CreateProjectButton';
 import { useState } from 'react';
-import { router } from 'next/client';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
@@ -21,7 +20,7 @@ export default function Dashboard() {
     <div className="flex flex-col min-h-screen">
       <div className="container mx-auto px-5 lg:px-8 max-w-6xl">
         <header className="flex justify-between items-center py-4">
-          <Avatar />
+          <Avatar src="https://github.com/shadcn.png" />
           <div className="flex flex-row justify-between items-center">
             <a
               href="#"
@@ -40,7 +39,6 @@ export default function Dashboard() {
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
                   <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-md h-md px-3 space-x-2 focus:outline-none max-w-max border-none w-full py-2 h-auto overflow-hidden -ml-2 sm:-ml-3">
                     <div className="flex space-x-4 items-center w-full overflow-hidden">
-                      <Avatar />
                       <div className="flex items-center gap-3">
                         <p className="text-h2 font-medium truncate tracking-[-0.24px]">
                           {user?.name}
@@ -52,10 +50,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex gap-4 items-center mt-2 sm:mt-0">
-                    <Link href="/people">
-                      <Avatar className="w-7 h-7" />
-                    </Link>
-
                     <div className="flex gap-2 flex-grow justify-end">
                       <Button variant="outline" size="icon">
                         <SettingsGearIcon />

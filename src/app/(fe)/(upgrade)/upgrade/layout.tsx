@@ -1,9 +1,6 @@
 import type React from 'react';
-import { Inter } from 'next/font/google';
 import ProtectedRoute from '@/shared/providers/ProtectedRoute';
 import { Toaster } from 'sonner';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Subscription Platform',

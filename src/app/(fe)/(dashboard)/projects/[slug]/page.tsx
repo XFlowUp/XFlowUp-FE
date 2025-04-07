@@ -1,11 +1,10 @@
 import { MainNav } from '@/app/(fe)/(dashboard)/projects/_components/MainNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ArchitectureView from '@/app/(fe)/(dashboard)/projects/_components/ArchitectureView';
-import { Badge } from '@/components/ui/badge';
 import { UserDropdown } from '@/components/user-nav';
 import { Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import TrialPlanHeader from '@/app/(fe)/(dashboard)/projects/_components/TrialPlanHeader';
+import PlanHeader from '@/app/(fe)/(dashboard)/projects/_components/PlanHeader';
 
 export default async function ProjectsPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -44,7 +43,7 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
                   Settings
                 </TabsTrigger>
               </TabsList>
-              <TrialPlanHeader />
+              <PlanHeader />
               <Button
                 variant="outline"
                 size="sm"

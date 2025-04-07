@@ -12,6 +12,7 @@ import { motion } from 'motion/react';
 import ServiceMainMenu from './ServiceMainMenu';
 import GithubRepositoryList from './GithubRepositoryList';
 import DatabaseServiceList from './DatabaseServiceList';
+import { useArchitecture, ServiceData } from './ArchitectureContext';
 
 enum ServiceDialogScreen {
   MAIN_MENU,
@@ -22,6 +23,7 @@ enum ServiceDialogScreen {
 export default function CreateServiceButton() {
   const [currentScreen, setCurrentScreen] = useState(ServiceDialogScreen.MAIN_MENU);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { addServiceNode } = useArchitecture();
 
   const handleBackToMainMenu = () => {
     setCurrentScreen(ServiceDialogScreen.MAIN_MENU);
@@ -32,6 +34,36 @@ export default function CreateServiceButton() {
     if (!open) {
       setCurrentScreen(ServiceDialogScreen.MAIN_MENU);
     }
+  };
+
+  const handleSelectGithubRepository = (repo: any) => {
+    // Tạo service data từ repository được chọn
+    const serviceData: ServiceData = {
+      name: repo.name,
+      fullName: repo.fullName || `${repo.name}-${Math.floor(Math.random() * 10000)}`,
+      source: 'GitHub',
+    };
+
+    // Thêm node mới vào flow
+    addServiceNode(serviceData);
+
+    // Đóng dialog
+    setIsDialogOpen(false);
+  };
+
+  const handleSelectDatabaseService = (service: any) => {
+    // Tạo service data từ database service được chọn
+    const serviceData: ServiceData = {
+      name: service.name,
+      fullName: service.fullName || `${service.name}-${Math.floor(Math.random() * 10000)}`,
+      source: 'Database',
+    };
+
+    // Thêm node mới vào flow
+    addServiceNode(serviceData);
+
+    // Đóng dialog
+    setIsDialogOpen(false);
   };
 
   return (
@@ -130,11 +162,7 @@ export default function CreateServiceButton() {
               exit={{ x: '100%', opacity: 0 }}
               transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             >
-              <DatabaseServiceList
-                onSelectService={service => {
-                  console.log('Selected database service:', service);
-                }}
-              />
+              <DatabaseServiceList onSelectService={handleSelectDatabaseService} />
             </motion.div>
           )}
 
@@ -146,11 +174,7 @@ export default function CreateServiceButton() {
               exit={{ x: '100%', opacity: 0 }}
               transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             >
-              <GithubRepositoryList
-                onSelectRepository={repo => {
-                  console.log('Selected repository:', repo);
-                }}
-              />
+              <GithubRepositoryList onSelectRepository={handleSelectGithubRepository} />
             </motion.div>
           )}
         </div>

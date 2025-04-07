@@ -1,42 +1,69 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollAnimation } from '../animations/scroll-animation';
+import { useTheme } from 'next-themes';
 
 const FrameworkSelection = () => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentTheme = mounted ? resolvedTheme : undefined;
+
   const majorFrameworks = [
     {
       name: 'Astro',
-      logo: '/astro-logo.svg',
+      logo:
+        mounted && currentTheme === 'dark'
+          ? '/frameworks/astro-icon-light.svg'
+          : '/frameworks/astro-icon-dark.svg',
       href: '/deploy/astro',
     },
     {
       name: 'Next.JS',
-      logo: '/nextjs-logo.svg',
+      logo:
+        mounted && currentTheme === 'dark'
+          ? '/frameworks/nextjs-icon-light.svg'
+          : '/frameworks/nextjs-icon-dark.svg',
       href: '/deploy/nextjs',
     },
     {
       name: 'Nuxt',
-      logo: '/nuxt-logo.svg',
+      logo: '/frameworks/nuxt-icon.svg',
       href: '/deploy/nuxt',
     },
     {
       name: 'Remix',
-      logo: '/remix-logo.svg',
+      logo:
+        mounted && currentTheme === 'dark'
+          ? '/frameworks/remix-letter-dark.svg'
+          : '/frameworks/remix-letter-light.svg',
       href: '/deploy/remix',
     },
   ];
 
   const minorFrameworks = [
-    { name: 'React', logo: '/react-logo.svg', href: '/deploy/react' },
-    { name: '11ty', logo: '/11ty-logo.svg', href: '/deploy/11ty' },
-    { name: 'Gatsby', logo: '/gatsby-logo.svg', href: '/deploy/gatsby' },
-    { name: 'SvelteKit', logo: '/sveltekit-logo.svg', href: '/deploy/sveltekit' },
-    { name: 'Vue', logo: '/vue-logo.svg', href: '/deploy/vue' },
-    { name: 'Angular', logo: '/angular-logo.svg', href: '/deploy/angular' },
-    { name: 'Solid', logo: '/solid-logo.svg', href: '/deploy/solid' },
-    { name: 'Hydrogen', logo: '/hydrogen-logo.svg', href: '/deploy/hydrogen' },
+    { name: 'React', logo: '/frameworks/react-icon.svg', href: '/deploy/react' },
+    {
+      name: '11ty',
+      logo:
+        mounted && currentTheme === 'dark'
+          ? '/frameworks/11ty-icon-light.svg'
+          : '/frameworks/11ty-icon-dark.svg',
+      href: '/deploy/11ty',
+    },
+    { name: 'Gatsby', logo: '/frameworks/gatsby-icon.svg', href: '/deploy/gatsby' },
+    { name: 'SvelteKit', logo: '/frameworks/sveltekit-icon.svg', href: '/deploy/sveltekit' },
+    { name: 'Vue', logo: '/frameworks/vue-icon.svg', href: '/deploy/vue' },
+    { name: 'Angular', logo: '/frameworks/angular-icon.svg', href: '/deploy/angular' },
+    { name: 'Solid', logo: '/frameworks/solid-icon.svg', href: '/deploy/solid' },
+    { name: 'Hydrogen', logo: '/frameworks/hydrogen-icon.svg', href: '/deploy/hydrogen' },
   ];
 
   return (
@@ -44,7 +71,7 @@ const FrameworkSelection = () => {
       <ScrollAnimation>
         <h2 className="text-center font-bold">GET STARTED</h2>
         <h3 className="text-center font-bold mt-4 text-3xl md:text-4xl">
-          Here's freedom to framework how you want to
+          Here&#39;s freedom to framework how you want to
         </h3>
       </ScrollAnimation>
 

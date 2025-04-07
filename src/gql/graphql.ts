@@ -22,6 +22,13 @@ export type Scalars = {
   DateTime: { input: any; output: any };
 };
 
+export type AddEnvironmentValueInput = {
+  /** The key of the environment value */
+  key: Scalars['String']['input'];
+  /** The value of the environment value */
+  value: Scalars['String']['input'];
+};
+
 /** The error result of adding environments */
 export type AddEnvironmentsError = {
   __typename?: 'AddEnvironmentsError';
@@ -70,6 +77,63 @@ export type AddTeamMemberSuccessResult = {
   /** The email of the team member */
   email: Scalars['String']['output'];
   /** The status of the response */
+  status: Status;
+};
+
+/** Data of the created service */
+export type CreateNewServiceData = {
+  __typename?: 'CreateNewServiceData';
+  /** The id of the created service */
+  id: Scalars['String']['output'];
+  /** ProjectId of the created service */
+  projectId: Scalars['String']['output'];
+  /** ServiceType of the created service */
+  serviceType: Service_Type_Enum;
+};
+
+/** The result of the create new service */
+export type CreateNewServiceErrorResult = {
+  __typename?: 'CreateNewServiceErrorResult';
+  /** The message of the create new service */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the create new service */
+  status: Status;
+};
+
+/** Input for creating a new service */
+export type CreateNewServiceInput = {
+  /** Main branch of the created service */
+  branch?: InputMaybe<Scalars['String']['input']>;
+  /** DatabaseServiceId of the created service */
+  database_service_id?: InputMaybe<Scalars['Int']['input']>;
+  /** Description of the service */
+  description: Scalars['String']['input'];
+  /** DockerImageTag of the created service */
+  docker_image_tag?: InputMaybe<Scalars['String']['input']>;
+  /** DockerImage of the created service */
+  docker_image_url?: InputMaybe<Scalars['String']['input']>;
+  /** EnvironmentId of the created service */
+  environmentId: Scalars['Int']['input'];
+  /** Name of the service */
+  name: Scalars['String']['input'];
+  /** ProjectSlug of the created service */
+  projectSlug: Scalars['String']['input'];
+  /** Repository of the created service */
+  repository?: InputMaybe<Scalars['String']['input']>;
+  /** ServiceType of the created service */
+  serviceType: Service_Type_Enum;
+};
+
+export type CreateNewServiceResult = CreateNewServiceErrorResult | CreateNewServiceSuccessResult;
+
+/** The result of the create new service */
+export type CreateNewServiceSuccessResult = {
+  __typename?: 'CreateNewServiceSuccessResult';
+  /** The data of the created service */
+  data: CreateNewServiceData;
+  /** The message of the create new service */
+  message: Scalars['String']['output'];
+  /** The status of the create new service */
   status: Status;
 };
 
@@ -129,6 +193,25 @@ export type DatabaseService = {
   name: Scalars['String']['output'];
 };
 
+/** The result of deleting an environment */
+export type DeleteEnvironmentErrorResult = {
+  __typename?: 'DeleteEnvironmentErrorResult';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
+/** The result of deleting an environment */
+export type DeleteEnvironmentResult = DeleteEnvironmentErrorResult | DeleteEnvironmentSuccessResult;
+
+/** The result of deleting an environment */
+export type DeleteEnvironmentSuccessResult = {
+  __typename?: 'DeleteEnvironmentSuccessResult';
+  /** The status of the result */
+  status: Status;
+};
+
 export type DeleteProjectError = {
   __typename?: 'DeleteProjectError';
   message: Scalars['String']['output'];
@@ -143,8 +226,75 @@ export type DeleteProjectSuccess = {
   status: Status;
 };
 
+export type DeploymentData = {
+  __typename?: 'DeploymentData';
+  id: Scalars['String']['output'];
+};
+
+/** The result of the deployment request */
+export type DeploymentRequestErrorResult = {
+  __typename?: 'DeploymentRequestErrorResult';
+  /** The message of the deployment request */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the deployment request */
+  status: Status;
+};
+
+export type DeploymentRequestResult = DeploymentRequestErrorResult | DeploymentRequestSuccessResult;
+
+/** The result of the deployment request */
+export type DeploymentRequestSuccessResult = {
+  __typename?: 'DeploymentRequestSuccessResult';
+  /** The deployment data */
+  deployment: DeploymentData;
+  /** The message of the deployment request */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the deployment request */
+  status: Status;
+};
+
+/** The result of editing an environment error */
+export type EditEnvironmentValueError = {
+  __typename?: 'EditEnvironmentValueError';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
+export type EditEnvironmentValueInput = {
+  /** The id of the environment value */
+  environmentId: Scalars['String']['input'];
+  /** The environment values */
+  environmentValues: Array<AddEnvironmentValueInput>;
+  /** The slug of the project */
+  projectSlug: Scalars['String']['input'];
+};
+
+/** The result of editing an environment value list */
+export type EditEnvironmentValueResult = EditEnvironmentValueError | EditEnvironmentValueSuccess;
+
+/** The result of editing an environment success */
+export type EditEnvironmentValueSuccess = {
+  __typename?: 'EditEnvironmentValueSuccess';
+  /** The status of the result */
+  status: Status;
+};
+
 export type Environment = {
   __typename?: 'Environment';
+  /** The id of the environment */
+  id: Scalars['String']['output'];
+  /** The name of the environment */
+  key: Scalars['String']['output'];
+  /** The value of the environment */
+  value: Scalars['String']['output'];
+};
+
+export type EnvironmentElement = {
+  __typename?: 'EnvironmentElement';
+  /** The description of the environment */
+  description: Scalars['String']['output'];
   /** The id of the environment */
   id: Scalars['String']['output'];
   /** The name of the environment */
@@ -155,7 +305,29 @@ export type EnvironmentInput = {
   /** The id of the environment */
   id: Scalars['String']['input'];
   /** The name of the environment */
-  name: Scalars['String']['input'];
+  key: Scalars['String']['input'];
+  /** The value of the environment */
+  value: Scalars['String']['input'];
+};
+
+/** The result of the get all services */
+export type GetAllServicesFailedResult = {
+  __typename?: 'GetAllServicesFailedResult';
+  /** The message of the get all services */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the get all services */
+  status: Status;
+};
+
+export type GetAllServicesResult = GetAllServicesFailedResult | GetAllServicesSuccessResult;
+
+/** Get all services for a project */
+export type GetAllServicesSuccessResult = {
+  __typename?: 'GetAllServicesSuccessResult';
+  /** The services for the project */
+  services: Array<Service>;
+  /** The status of the get all services */
+  status: Status;
 };
 
 /** The error response for getting database services */
@@ -219,7 +391,8 @@ export type GetEnvironmentsResult = GetEnvironmentsError | GetEnvironmentsSucces
 /** The result of getting environments */
 export type GetEnvironmentsSuccess = {
   __typename?: 'GetEnvironmentsSuccess';
-  environments: Array<Environment>;
+  /** The environments list */
+  environments: Array<EnvironmentElement>;
   /** The status of the result */
   status: Status;
 };
@@ -291,8 +464,16 @@ export type Mutation = {
   add_team_member: AddTeamMemberResult;
   /** Create a new project */
   create_project: CreateProjectResult;
+  /** Create a new service */
+  create_service: CreateNewServiceResult;
+  /** Delete an environment from a project */
+  delete_environment: DeleteEnvironmentResult;
   /** Delete a project */
   delete_project: DeleteProjectResult;
+  /** Edit an environment value */
+  edit_environment_value: EditEnvironmentValueResult;
+  /** Request a deployment */
+  request_deployment: DeploymentRequestResult;
   /** Send an email */
   send_email: MailResponse;
   /** Send an email with a template */
@@ -315,8 +496,27 @@ export type MutationCreate_ProjectArgs = {
   name: Scalars['String']['input'];
 };
 
+export type MutationCreate_ServiceArgs = {
+  input: CreateNewServiceInput;
+};
+
+export type MutationDelete_EnvironmentArgs = {
+  environment_id: Scalars['String']['input'];
+  project_slug: Scalars['String']['input'];
+};
+
 export type MutationDelete_ProjectArgs = {
   slug: Scalars['String']['input'];
+};
+
+export type MutationEdit_Environment_ValueArgs = {
+  input: EditEnvironmentValueInput;
+};
+
+export type MutationRequest_DeploymentArgs = {
+  environment_id: Scalars['Float']['input'];
+  project_id: Scalars['String']['input'];
+  service_id: Scalars['Float']['input'];
 };
 
 export type MutationSend_EmailArgs = {
@@ -395,6 +595,8 @@ export type Query = {
   environment_values: GetEnvironmentValuesResult;
   /** Get all environments in a project */
   environments: GetEnvironmentsResult;
+  /** Get all services for a project */
+  get_all_services: GetAllServicesResult;
   /** Get all database services for creating new service */
   get_database_services: GetDatabaseServiceResult;
   /** Get all repositories for creating new service */
@@ -421,6 +623,10 @@ export type QueryEnvironment_ValuesArgs = {
 };
 
 export type QueryEnvironmentsArgs = {
+  project_slug: Scalars['String']['input'];
+};
+
+export type QueryGet_All_ServicesArgs = {
   project_slug: Scalars['String']['input'];
 };
 
@@ -456,6 +662,8 @@ export type RepositoryObject = {
   git_url: Scalars['String']['output'];
   /** The id of the repository */
   id: Scalars['Int']['output'];
+  /** Whether the repository is private */
+  is_private: Scalars['Boolean']['output'];
   /** The name of the repository */
   name: Scalars['String']['output'];
   /** The owner of the repository */
@@ -464,6 +672,26 @@ export type RepositoryObject = {
   updated_at?: Maybe<Scalars['String']['output']>;
   /** The url of the repository */
   url: Scalars['String']['output'];
+};
+
+export enum Service_Type_Enum {
+  Database = 'DATABASE',
+  DockerImage = 'DOCKER_IMAGE',
+  Functions = 'FUNCTIONS',
+  GithubRepo = 'GITHUB_REPO',
+}
+
+/** Service type */
+export type Service = {
+  __typename?: 'Service';
+  /** The id of the service */
+  id: Scalars['String']['output'];
+  /** Last deployment date */
+  lastDeploymentDate?: Maybe<Scalars['DateTime']['output']>;
+  /** The name of the service */
+  name: Scalars['String']['output'];
+  /** The type of the service */
+  type: Service_Type_Enum;
 };
 
 export enum Status {
@@ -578,7 +806,7 @@ export type EnvironmentsQueryQuery = {
     | {
         __typename?: 'GetEnvironmentsSuccess';
         status: Status;
-        environments: Array<{ __typename?: 'Environment'; id: string; name: string }>;
+        environments: Array<{ __typename?: 'EnvironmentElement'; id: string; name: string }>;
       };
 };
 
@@ -625,6 +853,7 @@ export type GetRepositoriesQuery = {
           description?: string | null;
           url: string;
           git_url: string;
+          is_private: boolean;
           created_at?: string | null;
           updated_at?: string | null;
           owner: { __typename?: 'Owner'; id: number; login: string; avatar_url: string };
@@ -1189,6 +1418,7 @@ export const GetRepositoriesDocument = {
                             { kind: 'Field', name: { kind: 'Name', value: 'description' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'url' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'git_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'is_private' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'created_at' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'updated_at' } },
                           ],
