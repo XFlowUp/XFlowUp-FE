@@ -15,6 +15,6 @@ const GET_USER_INFO = gql(`
 
 export default function useUserInfo() {
   return useQuery(GET_USER_INFO, {
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'network-only',
   });
 }

@@ -8,10 +8,19 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/shared/stores/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserDropdown } from '../user-nav';
+import useUserInfo from '@/shared/api/queries/useUserInfo';
+import { useEffect } from 'react';
 
 export default function LoginButton() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { loading: isLoading, data } = useUserInfo();
+  const setUser = useAuthStore(state => state.setUser);
+
+  useEffect(() => {
+    if (!isLoading && data) {
+      setUser(data?.user_info);
+    }
+  }, [isLoading, data]);
 
   const onLogin = React.useCallback(() => {
     router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/github`);
@@ -30,7 +39,7 @@ export default function LoginButton() {
     );
   }
 
-  if (isAuthenticated) {
+  if (!isLoading && data && data.user_info) {
     return (
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={handleNavigateToDashboard}>

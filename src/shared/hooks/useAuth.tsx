@@ -1,7 +1,10 @@
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'next/navigation';
+import { useApolloClient } from '@apollo/client';
+
 export default function useAuth() {
   const router = useRouter();
+  const client = useApolloClient();
   const {
     user,
     isAuthenticated,
@@ -13,6 +16,8 @@ export default function useAuth() {
 
   const logout = () => {
     logoutFromStore();
+    // Xóa cache của Apollo Client
+    client.resetStore();
     router.push('/');
   };
 
