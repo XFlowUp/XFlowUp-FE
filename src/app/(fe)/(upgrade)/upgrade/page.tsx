@@ -16,7 +16,6 @@ export default function UpgradePage() {
     if (planParam === 'pro' || planParam === 'hobby') {
       setPlan(planParam);
     } else {
-      // Default to hobby if no valid plan is specified
       router.replace('/upgrade?plan=hobby');
     }
   }, [searchParams, router]);

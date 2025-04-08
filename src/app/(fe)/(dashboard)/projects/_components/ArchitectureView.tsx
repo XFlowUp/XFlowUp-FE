@@ -13,7 +13,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   type ReactFlowInstance,
-  type Viewport,
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -26,105 +25,123 @@ import { UndoIcon } from '@/components/ui/undo';
 import { RedoIcon } from '@/components/ui/redo';
 import { TerminalIcon } from '@/components/ui/terminal';
 import { ActivityIcon } from '@/components/ui/activity';
-import CreateServiceButton from '@/app/(fe)/(dashboard)/projects/_components/CreateServiceButton';
 import { ArchitectureProvider } from './ArchitectureContext';
+import useAllServices from '@/shared/api/queries/useAllServices';
+import { useParams } from 'next/navigation';
+import ServiceDialog from './ServiceDialog';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
 };
 
-const initialNodes: Node[] = [
+const emptyNodes: Node[] = [];
+const initialEdges: Edge[] = [];
+
+const loadingSkeletonNodes: Node[] = [
   {
-    id: '1',
+    id: 'skeleton-center',
     type: 'service',
-    position: { x: 0, y: 0 },
-    data: {
-      name: 'call-server',
-      fullName: 'call-server-production-0e54',
-      source: 'GitHub',
-      timeAgo: '3 days ago',
+    position: {
+      x: 250,
+      y: 150,
     },
-  },
-  {
-    id: '2',
-    type: 'service',
-    position: { x: 300, y: 0 },
     data: {
-      name: 'XFlowUpFE',
-      fullName: 'xflowup-production-0e54',
-      source: 'GitHub',
-      timeAgo: '3 days ago',
+      title: 'Loading...',
+      description: 'Loading...',
+      source: 'Loading',
+      timeAgo: 'Loading...',
+      isSkeleton: true,
+      isEmptyState: false,
     },
+    draggable: false,
   },
 ];
 
-const initialEdges: Edge[] = [];
-
-const defaultViewport: Viewport = {
-  x: 0,
-  y: 0,
-  zoom: 1,
-};
+const emptyStateNodes: Node[] = [
+  {
+    id: 'empty-state-node',
+    type: 'service',
+    position: {
+      x: 250,
+      y: 150,
+    },
+    data: {
+      title: 'Add a Service',
+      description: 'Click here to create your first service in this project',
+      source: 'or top-right button is fine too.',
+      timeAgo: '',
+      isSkeleton: true,
+      icon: 'plus',
+      isEmptyState: true,
+    },
+    draggable: false,
+  },
+];
 
 function Flow() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const params = useParams();
+  const projectSlug = typeof params.slug === 'string' ? params.slug : '';
+
+  const { data, loading } = useAllServices(projectSlug);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(emptyNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const activityPanelRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  const checkNodeOverlap = useCallback((nodes: Node[]) => {
-    const nodeSize = { width: 180, height: 100 };
-    const offset = { x: 30, y: 30 };
-    const overlapThreshold = 0.85;
-    const singleAxisThreshold = 0.95;
-    const combinedThreshold = 1.5;
+  useEffect(() => {
+    if (loading) {
+      setNodes(loadingSkeletonNodes);
+      return;
+    }
 
-    const updatedNodes = [...nodes];
-    let hasChanges = false;
+    if (
+      data?.get_all_services?.__typename === 'GetAllServicesSuccessResult' &&
+      data.get_all_services.services
+    ) {
+      const services = data.get_all_services.services;
 
-    for (let i = 0; i < updatedNodes.length; i++) {
-      for (let j = i + 1; j < updatedNodes.length; j++) {
-        const nodeA = updatedNodes[i];
-        const nodeB = updatedNodes[j];
-
-        const distanceX = Math.abs(nodeA.position.x - nodeB.position.x);
-        const distanceY = Math.abs(nodeA.position.y - nodeB.position.y);
-
-        const overlapX = Math.max(0, nodeSize.width - distanceX) / nodeSize.width;
-        const overlapY = Math.max(0, nodeSize.height - distanceY) / nodeSize.height;
-
-        const isSignificantlyOverlapping =
-          (overlapX > overlapThreshold && overlapY > overlapThreshold) ||
-          overlapX > singleAxisThreshold ||
-          overlapY > singleAxisThreshold ||
-          overlapX + overlapY > combinedThreshold;
-
-        if (isSignificantlyOverlapping) {
-          const nodeToMove = parseInt(nodeA.id) > parseInt(nodeB.id) ? nodeA : nodeB;
-          const referenceNode = nodeToMove === nodeA ? nodeB : nodeA;
-
-          nodeToMove.position = {
-            x: referenceNode.position.x + offset.x,
-            y: referenceNode.position.y + offset.y,
-          };
-
-          hasChanges = true;
-        }
+      if (services.length === 0) {
+        setNodes(emptyStateNodes);
+        return;
       }
-    }
 
-    if (hasChanges) {
-      return updatedNodes;
-    }
+      const sortedServices = [...services].sort((a, b) => a.name.localeCompare(b.name));
 
-    return nodes;
-  }, []);
+      const centerX = 250;
+      const centerY = 150;
+      const radius = 200;
+      const servicesNodes: Node[] = sortedServices.map((service, index) => {
+        const angle = (index / sortedServices.length) * 2 * Math.PI;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        return {
+          id: service.id,
+          type: 'service',
+          position: { x, y },
+          data: {
+            title: service.name,
+            description: service.name,
+            source: service.type || 'Service',
+            timeAgo: service.lastDeploymentDate
+              ? new Date(service.lastDeploymentDate).toLocaleDateString()
+              : 'Not deployed',
+            isSkeleton: false,
+          },
+        };
+      });
+
+      setNodes(servicesNodes);
+    }
+  }, [data, loading, setNodes]);
 
   const saveToHistory = useCallback(() => {
     if (rfInstance) {
@@ -204,15 +221,29 @@ function Flow() {
     ]);
     setHistoryIndex(0);
     await instance.setViewport({ x: 0, y: 0, zoom: 1 });
-    await instance.fitView({ duration: 300, padding: 0.2, minZoom: 1, maxZoom: 1 });
+    await instance.fitView({ duration: 0, padding: 0.2, minZoom: 1, maxZoom: 1 });
   }, []);
 
   const handleAddNode = useCallback(
     (newNode: Node) => {
-      setNodes(prevNodes => [...prevNodes, newNode]);
+      setNodes(prevNodes => {
+        if (prevNodes.length === 1 && prevNodes[0].id === 'empty-state-node') {
+          return [newNode];
+        }
+        return [...prevNodes, newNode];
+      });
       saveToHistory();
     },
     [setNodes, saveToHistory]
+  );
+
+  const handleNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      if (node.data.isEmptyState && !loading) {
+        setIsDialogOpen(true);
+      }
+    },
+    [loading]
   );
 
   useEffect(() => {
@@ -249,21 +280,11 @@ function Flow() {
           onNodeDragStart={() => setIsDragging(true)}
           onNodeDragStop={() => {
             setIsDragging(false);
-
-            if (rfInstance) {
-              const allNodes = rfInstance.getNodes();
-              const adjustedNodes = checkNodeOverlap(allNodes);
-
-              if (adjustedNodes !== allNodes) {
-                setNodes(adjustedNodes);
-              }
-            }
-
             saveToHistory();
           }}
+          onNodeClick={handleNodeClick}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
-          defaultViewport={defaultViewport}
           onInit={onInit}
           minZoom={0.5}
           maxZoom={1.5}
@@ -278,7 +299,16 @@ function Flow() {
           />
 
           <Panel position="top-right">
-            <CreateServiceButton />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create
+            </Button>
+            <ServiceDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
           </Panel>
 
           <Panel position="top-left" className="flex flex-col gap-2">

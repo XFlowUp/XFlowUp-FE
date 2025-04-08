@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import MouseMoveEffect from '@/components/mouse-move-effect';
 import { motion } from 'framer-motion';
 
-// Animation variants
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -453,7 +452,6 @@ function FeatureItem({
 }
 
 function GiftIcon() {
-  // GiftIcon remains unchanged
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

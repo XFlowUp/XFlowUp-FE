@@ -1,15 +1,9 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { type Node } from '@xyflow/react';
+import { ServiceNodeData } from './ServiceNode';
 
 interface ArchitectureContextType {
-  addServiceNode: (serviceData: ServiceData) => void;
-}
-
-export interface ServiceData {
-  name: string;
-  fullName: string;
-  source: string;
-  timeAgo?: string;
+  addServiceNode: (serviceData: ServiceNodeData) => void;
 }
 
 const ArchitectureContext = createContext<ArchitectureContextType | undefined>(undefined);
@@ -22,11 +16,9 @@ export function ArchitectureProvider({
   onAddNode: (node: Node) => void;
 }) {
   const addServiceNode = useCallback(
-    (serviceData: ServiceData) => {
-      // Tạo ID ngẫu nhiên cho node mới
+    (serviceData: ServiceNodeData) => {
       const nodeId = `service-${Date.now()}`;
 
-      // Tạo một node mới với vị trí ngẫu nhiên trong khoảng hợp lý
       const newNode: Node = {
         id: nodeId,
         type: 'service',

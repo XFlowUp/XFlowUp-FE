@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,27 +11,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronDownIcon } from '@/components/ui/chevron-down';
 import { Plus } from 'lucide-react';
 import { CheckIcon } from '@/components/ui/check';
-import useEnvironments from '@/shared/api/queries/useEnvironments';
+import { useEnvironment } from './EnvironmentContext';
 
 export interface EnvironmentsDropdownProps {
   slug: string;
   onNewEnvironmentClick: () => void;
 }
 
-const EnvironmentsDropdown = ({ slug, onNewEnvironmentClick }: EnvironmentsDropdownProps) => {
-  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
-  const { data, loading: envLoading, error } = useEnvironments(slug);
-
-  const environments =
-    data?.environments?.__typename === 'GetEnvironmentsSuccess'
-      ? data.environments.environments
-      : [];
-
-  useEffect(() => {
-    if (environments.length > 0) {
-      setSelectedEnvironment(environments[0].name);
-    }
-  }, [environments]);
+const EnvironmentsDropdown = ({ onNewEnvironmentClick }: EnvironmentsDropdownProps) => {
+  const {
+    selectedEnvironmentId,
+    selectedEnvironmentName,
+    setSelectedEnvironmentId,
+    environments,
+    loading: envLoading,
+    error,
+  } = useEnvironment();
 
   return (
     <DropdownMenu>
@@ -42,7 +36,7 @@ const EnvironmentsDropdown = ({ slug, onNewEnvironmentClick }: EnvironmentsDropd
             <Skeleton className="h-8 w-30" />
           ) : (
             <>
-              {selectedEnvironment} <ChevronDownIcon className="h-4 w-4" />
+              {selectedEnvironmentName} <ChevronDownIcon className="h-4 w-4" />
             </>
           )}
         </Button>
@@ -70,9 +64,9 @@ const EnvironmentsDropdown = ({ slug, onNewEnvironmentClick }: EnvironmentsDropd
             <DropdownMenuItem
               className="px-3 py-2 flex items-center"
               key={env.id}
-              onClick={() => setSelectedEnvironment(env.name)}
+              onClick={() => setSelectedEnvironmentId(env.id)}
             >
-              {env.name === selectedEnvironment ? (
+              {env.id === selectedEnvironmentId ? (
                 <CheckIcon size={16} className="mr-2 p-0" />
               ) : (
                 <div className="w-[16px] h-[16px] mr-2"></div>

@@ -16,7 +16,6 @@ export default function useAuth() {
 
   const logout = () => {
     logoutFromStore();
-    // Xóa cache của Apollo Client
     client.resetStore();
     router.push('/');
   };

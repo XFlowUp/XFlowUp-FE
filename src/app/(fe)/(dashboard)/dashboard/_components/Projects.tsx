@@ -10,7 +10,6 @@ interface ProjectsProps {
   refetchTrigger: number;
 }
 
-// Animation variants for the cards
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
@@ -37,8 +36,7 @@ export default function Projects({ refetchTrigger }: ProjectsProps) {
         <hr className="w-full border-t border-gray-100 dark:border-gray-800 my-0" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loading
-            ? // Skeleton loader while data is loading
-              Array(6)
+            ? Array(6)
                 .fill(0)
                 .map((_, index) => (
                   <Card key={`skeleton-${index}`} className="border rounded-lg p-6 h-45">
@@ -50,8 +48,7 @@ export default function Projects({ refetchTrigger }: ProjectsProps) {
                   </Card>
                 ))
             : !error && (data?.all_projects as ProjectSuccess).data.length > 0
-              ? // Actual projects with animation
-                (data?.all_projects as ProjectSuccess).data.map((project, index) => (
+              ? (data?.all_projects as ProjectSuccess).data.map((project, index) => (
                   <motion.div
                     key={project.id}
                     variants={cardVariants}

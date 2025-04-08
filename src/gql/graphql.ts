@@ -132,7 +132,7 @@ export type CreateNewServiceSuccessResult = {
   /** The data of the created service */
   data: CreateNewServiceData;
   /** The message of the create new service */
-  message: Scalars['String']['output'];
+  message?: Maybe<Scalars['String']['output']>;
   /** The status of the create new service */
   status: Status;
 };
@@ -782,6 +782,48 @@ export type DeleteProjectMutationMutation = {
     | { __typename?: 'DeleteProjectSuccess'; message: string; status: Status };
 };
 
+export type CreateServiceMutationMutationVariables = Exact<{
+  input: CreateNewServiceInput;
+}>;
+
+export type CreateServiceMutationMutation = {
+  __typename?: 'Mutation';
+  create_service:
+    | { __typename?: 'CreateNewServiceErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'CreateNewServiceSuccessResult';
+        status: Status;
+        message?: string | null;
+        data: {
+          __typename?: 'CreateNewServiceData';
+          id: string;
+          projectId: string;
+          serviceType: Service_Type_Enum;
+        };
+      };
+};
+
+export type GetAllServicesQueryVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+}>;
+
+export type GetAllServicesQuery = {
+  __typename?: 'Query';
+  get_all_services:
+    | { __typename?: 'GetAllServicesFailedResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetAllServicesSuccessResult';
+        status: Status;
+        services: Array<{
+          __typename?: 'Service';
+          id: string;
+          type: Service_Type_Enum;
+          name: string;
+          lastDeploymentDate?: any | null;
+        }>;
+      };
+};
+
 export type DatabaseServicesQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type DatabaseServicesQueryQuery = {
@@ -1113,6 +1155,168 @@ export const DeleteProjectMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteProjectMutationMutation, DeleteProjectMutationMutationVariables>;
+export const CreateServiceMutationDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateServiceMutation' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreateNewServiceInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'create_service' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreateNewServiceSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'projectId' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'serviceType' } },
+                          ],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreateNewServiceErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateServiceMutationMutation, CreateServiceMutationMutationVariables>;
+export const GetAllServicesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetAllServices' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_all_services' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetAllServicesSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'services' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'type' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'lastDeploymentDate' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetAllServicesFailedResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetAllServicesQuery, GetAllServicesQueryVariables>;
 export const DatabaseServicesQueryDocument = {
   kind: 'Document',
   definitions: [

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DatabaseServiceListProps {
   onSelectService?: (service: any) => void;
+  onCreateNew?: () => void;
 }
 
 export default function DatabaseServiceList({ onSelectService }: DatabaseServiceListProps) {
@@ -37,6 +38,7 @@ export default function DatabaseServiceList({ onSelectService }: DatabaseService
           style={{ fontSize: '16px', backgroundColor: 'transparent' }}
         />
       </motion.div>
+
       <div className="p-3 overflow-y-auto flex-grow">
         {databaseServices.length > 0 ? (
           databaseServices.map(service => (

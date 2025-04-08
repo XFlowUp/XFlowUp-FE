@@ -1,12 +1,21 @@
 import ProtectedRoute from '@/shared/providers/ProtectedRoute';
 import React from 'react';
 import { Toaster } from 'sonner';
+import { EnvironmentProvider } from '../_components/EnvironmentContext';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function ProjectLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: { slug: string };
+}) {
   return (
     <ProtectedRoute>
-      {children}
-      <Toaster />
+      <EnvironmentProvider projectSlug={params.slug}>
+        {children}
+        <Toaster />
+      </EnvironmentProvider>
     </ProtectedRoute>
   );
 }
