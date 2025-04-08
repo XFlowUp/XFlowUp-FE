@@ -3,16 +3,18 @@ import React from 'react';
 import { Toaster } from 'sonner';
 import { EnvironmentProvider } from '../_components/EnvironmentContext';
 
-export default function ProjectLayout({
+type PageParams = Promise<{ slug: string }>;
+export default async function ProjectLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { slug: string };
+  params: PageParams;
 }) {
+  const { slug } = await params;
   return (
     <ProtectedRoute>
-      <EnvironmentProvider projectSlug={params.slug}>
+      <EnvironmentProvider projectSlug={slug}>
         {children}
         <Toaster />
       </EnvironmentProvider>
