@@ -4,20 +4,20 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Database } from 'lucide-react';
+import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { useParams } from 'next/navigation';
 import { Service_Type_Enum, CreateNewServiceInput } from '@/gql/graphql';
 import { useCreateService } from '@/shared/api/mutations/useServiceMutations';
 import { toast } from 'sonner';
-import { useEnvironment } from './EnvironmentContext';
 import { ServiceNodeData } from './ServiceNode';
+import { useEnvironment } from '../EnvironmentContext';
 
-interface DatabaseFormProps {
+interface GithubRepositoryFormProps {
+  repository: any;
   onSubmit: (serviceData: ServiceNodeData) => void;
-  database?: any;
 }
 
-export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) {
+export default function GithubRepositoryForm({ repository, onSubmit }: GithubRepositoryFormProps) {
   const params = useParams();
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
 
@@ -26,19 +26,20 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    branch: 'main',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createService] = useCreateService({} as CreateNewServiceInput);
 
   useEffect(() => {
-    if (database) {
+    if (repository && repository.name) {
       setFormData(prev => ({
         ...prev,
-        name: database.name || '',
+        name: repository.name,
       }));
     }
-  }, [database]);
+  }, [repository]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -56,6 +57,11 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
       return;
     }
 
+    if (!formData.branch) {
+      toast.error('Branch name is required for GitHub repositories');
+      return;
+    }
+
     if (!selectedEnvironmentId) {
       toast.error('Please select an environment first');
       return;
@@ -67,10 +73,11 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
       const serviceInput: CreateNewServiceInput = {
         name: formData.name,
         description: formData.description,
+        branch: formData.branch,
+        repository: repository.url,
         projectSlug: projectSlug,
-        serviceType: Service_Type_Enum.Database,
+        serviceType: Service_Type_Enum.GithubRepo,
         environmentId: parseInt(selectedEnvironmentId, 10),
-        ...(database?.id && { database_service_id: parseInt(database.id, 10) }),
       };
 
       const response = await createService({
@@ -83,22 +90,22 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
       if (result?.__typename === 'CreateNewServiceSuccessResult') {
         const serviceData: ServiceNodeData = {
           title: formData.name,
-          description: formData.description,
-          source: Service_Type_Enum.Database,
+          description: repository.name || formData.name,
+          source: 'GitHub',
           timeAgo: 'just now',
         };
 
         onSubmit(serviceData);
 
-        toast.success('Database service created successfully!');
+        toast.success('Service created successfully!');
       } else if (result?.__typename === 'CreateNewServiceErrorResult') {
-        throw new Error(result.message || 'Failed to create database service');
+        throw new Error(result.message || 'Failed to create service');
       } else {
         throw new Error('Unknown error occurred');
       }
     } catch (error: any) {
       console.error('Error creating service:', error);
-      toast.error(error.message || 'An error occurred while creating the database service');
+      toast.error(error.message || 'An error occurred while creating the service');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,13 +120,17 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Database size={24} className="text-blue-600 dark:text-blue-400" />
-          <div className="text-base font-medium">{database ? database.name : 'New Database'}</div>
-          {database && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-              {database.type || 'Database'}
-            </span>
-          )}
+          <IoLogoGithub size={24} className="text-gray-900 dark:text-white" />
+          <div className="text-base font-medium">{repository.name}</div>
+          <span
+            className={`text-xs px-1.5 py-0.5 rounded-full ${
+              repository.is_private
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+            }`}
+          >
+            {repository.is_private ? 'Private' : 'Public'}
+          </span>
         </motion.div>
 
         <form onSubmit={handleSubmit}>
@@ -130,13 +141,13 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
             transition={{ duration: 0.3, delay: 0.1 }}
           >
             <div className="space-y-2">
-              <Label htmlFor="name">Database Name</Label>
+              <Label htmlFor="name">Service Name</Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter database name"
+                placeholder="Enter service name"
                 className="h-10 dark:border-gray-600 dark:focus:border-blue-500"
                 required
               />
@@ -149,10 +160,26 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe this database"
+                placeholder="Describe this service"
                 className="min-h-[60px] resize-none dark:border-gray-600 dark:focus:border-blue-500"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="branch">Branch</Label>
+              <Input
+                id="branch"
+                name="branch"
+                value={formData.branch}
+                onChange={handleChange}
+                placeholder="main"
+                className="h-10 dark:border-gray-600 dark:focus:border-blue-500"
+                required
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Branch to be used for service deployment
+              </p>
             </div>
 
             <div className="pt-2">
@@ -167,7 +194,7 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
                     <span>Creating...</span>
                   </div>
                 ) : (
-                  'Create Database'
+                  'Create Service'
                 )}
               </Button>
             </div>

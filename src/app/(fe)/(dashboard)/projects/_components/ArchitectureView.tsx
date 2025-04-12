@@ -19,16 +19,17 @@ import '@xyflow/react/dist/style.css';
 import { Plus, Minus, ChevronDown, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import ServiceNode from './ServiceNode';
 import { ExpandIcon } from '@/components/ui/expand';
 import { UndoIcon } from '@/components/ui/undo';
 import { RedoIcon } from '@/components/ui/redo';
 import { TerminalIcon } from '@/components/ui/terminal';
 import { ActivityIcon } from '@/components/ui/activity';
-import { ArchitectureProvider } from './ArchitectureContext';
+import { ArchitectureProvider } from './architecture/ArchitectureContext';
 import useAllServices from '@/shared/api/queries/useAllServices';
 import { useParams } from 'next/navigation';
-import ServiceDialog from './ServiceDialog';
+import ServiceNode from './architecture/ServiceNode';
+import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
+import ServiceDialog from './architecture/ServiceDialog';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -92,6 +93,7 @@ function Flow() {
   const [isDragging, setIsDragging] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Node['data'] | null>(null);
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -241,10 +243,58 @@ function Flow() {
     (event: React.MouseEvent, node: Node) => {
       if (node.data.isEmptyState && !loading) {
         setIsDialogOpen(true);
+        return;
+      }
+
+      // Only set selectedService for non-skeleton nodes
+      if (!node.data.isSkeleton || node.data.isEmptyState) {
+        setSelectedService({
+          id: node.id,
+          title: node.data.title,
+          description: node.data.description,
+          source: node.data.source,
+          timeAgo: node.data.timeAgo,
+          icon: node.data.icon,
+        });
+
+        // Center the selected node in the remaining 1/3 space on the left
+        if (rfInstance) {
+          setTimeout(() => {
+            // Give time for the panel to slide in
+            const nodePosition = node.position;
+            const remainingWidth = window.innerWidth / 3; // 1/3 of screen width on the left
+            const centerX = remainingWidth / 2 - 40; // Center of the left 1/3 space with offset to avoid being too close to the panel
+
+            // Adjust viewport to position the node at the center of the left 1/3 space
+            rfInstance.setViewport(
+              {
+                x: centerX - nodePosition.x,
+                y: window.innerHeight / 2 - nodePosition.y,
+                zoom: 0.9,
+              },
+              { duration: 800 }
+            );
+          }, 100);
+        }
       }
     },
-    [loading]
+    [loading, rfInstance]
   );
+
+  const handleCloseServicePanel = useCallback(() => {
+    setSelectedService(null);
+
+    if (rfInstance) {
+      setTimeout(() => {
+        rfInstance.fitView({
+          duration: 800,
+          padding: 0.2,
+          minZoom: 0.5,
+          maxZoom: 1,
+        });
+      }, 100);
+    }
+  }, [rfInstance]);
 
   useEffect(() => {
     const updateMaxHeight = () => {
@@ -264,6 +314,7 @@ function Flow() {
   return (
     <ArchitectureProvider onAddNode={handleAddNode}>
       <div className="h-full w-full relative overflow-hidden" ref={flowRef}>
+        <ServiceDetailPanel service={selectedService} onClose={handleCloseServicePanel} />
         <ReactFlow
           nodes={nodes}
           edges={edges}

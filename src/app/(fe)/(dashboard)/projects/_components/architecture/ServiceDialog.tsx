@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import ServiceMainMenu from './ServiceMainMenu';
 import GithubRepositoryList from './GithubRepositoryList';
 import DatabaseServiceList from './DatabaseServiceList';
-import { useArchitecture } from './ArchitectureContext';
 import GithubRepositoryForm from './GithubRepositoryForm';
 import DatabaseForm from './DatabaseForm';
 import { ServiceNodeData } from './ServiceNode';
+import { useArchitecture } from './ArchitectureContext';
 
 enum ServiceDialogScreen {
   MAIN_MENU,
