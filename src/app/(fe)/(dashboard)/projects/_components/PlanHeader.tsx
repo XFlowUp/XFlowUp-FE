@@ -73,10 +73,7 @@ export default function PlanHeader() {
                   Upgrade Plan
                 </Button>
 
-                <Button
-                  className="w-full bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-800 text-white mb-2"
-                  onClick={() => router.push('/upgrade?plan=hobby')}
-                >
+                <Button className="w-full mb-2" onClick={() => router.push('/upgrade?plan=hobby')}>
                   View Upgrade Options
                 </Button>
               </div>
