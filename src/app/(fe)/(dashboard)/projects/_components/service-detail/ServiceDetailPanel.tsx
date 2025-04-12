@@ -1,15 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Settings, Database, Package, Code, Globe } from 'lucide-react';
+import { X, Settings, Database, Package, Code, Globe, Loader2 } from 'lucide-react';
 import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Service_Type_Enum } from '@/gql/graphql';
+import { formatDistanceToNow } from 'date-fns';
+import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
-// Import smaller components
-import DeploymentItem from './DeploymentItem';
+import useDeploymentsHistory from '@/shared/api/queries/useDeploymentsHistory';
+import { useRequestDeployment } from '@/shared/api/mutations/useRequestDeploymentMutations';
+import { useEnvironment } from '../EnvironmentContext';
+
+import DeploymentItem, { mapApiStatusToUiStatus } from './DeploymentItem';
 import VariablesSection from './VariablesSection';
 import MetricsSection from './MetricsSection';
 import SettingsSection from './SettingsSection';
@@ -19,23 +26,125 @@ interface ServiceDetailPanelProps {
   onClose: () => void;
 }
 
-const sourceDisplayNames = {
-  [Service_Type_Enum.Database]: 'Database',
-  [Service_Type_Enum.DockerImage]: 'Docker Image',
-  [Service_Type_Enum.GithubRepo]: 'GitHub',
-  [Service_Type_Enum.Functions]: 'Cloud Functions',
-};
-
 const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const params = useParams();
+  const projectSlug = typeof params.slug === 'string' ? params.slug : '';
+  const serviceId = service?.id ? parseFloat(service.id as string) : 0;
+  const [page, setPage] = useState(1);
+  const [allDeployments, setAllDeployments] = useState<any[]>([]);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const perPage = 10;
+
+  const {
+    data: deploymentsData,
+    loading: deploymentsLoading,
+    error: deploymentsError,
+    fetchMore,
+    refetch: refetchDeployments,
+  } = useDeploymentsHistory(projectSlug, serviceId, 1, perPage, !!service);
+
+  const { selectedEnvironmentId } = useEnvironment();
+
+  const [requestDeployment] = useRequestDeployment(
+    projectSlug,
+    serviceId,
+    parseInt(selectedEnvironmentId || '0')
+  );
 
   useEffect(() => {
-    if (service) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
+    if (deploymentsData?.deployments_history.__typename === 'DeploymentHistorySuccessResult') {
+      const newDeployments = deploymentsData.deployments_history.data;
+      setAllDeployments(newDeployments);
+
+      if (newDeployments.length < perPage) {
+        setHasMoreData(false);
+      } else {
+        setHasMoreData(true);
+      }
     }
-  }, [service]);
+  }, [deploymentsData]);
+
+  const handleDeployment = async () => {
+    if (!service || isDeploying) return;
+
+    try {
+      setIsDeploying(true);
+      const { data } = await requestDeployment();
+
+      if (data?.request_deployment.__typename === 'DeploymentRequestSuccessResult') {
+        toast.success('Deployment requested successfully');
+        await refetchDeployments();
+      } else if (data?.request_deployment.__typename === 'DeploymentRequestErrorResult') {
+        toast.error(data.request_deployment.message || 'Failed to request deployment');
+      }
+    } catch (error) {
+      console.error('Deployment request error:', error);
+      toast.error('An error occurred while requesting deployment');
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
+  const loadMoreDeployments = async () => {
+    if (!hasMoreData || isFetchingNextPage || deploymentsLoading) return;
+
+    try {
+      setIsFetchingNextPage(true);
+      const nextPage = page + 1;
+
+      const { data: newData } = await fetchMore({
+        variables: {
+          page: nextPage,
+          perPage: perPage,
+          projectSlug,
+          serviceId,
+        },
+      });
+
+      if (newData?.deployments_history.__typename === 'DeploymentHistorySuccessResult') {
+        const newDeployments = newData.deployments_history.data;
+
+        if (newDeployments.length < perPage) {
+          setHasMoreData(false);
+        }
+
+        setAllDeployments(prev => [...prev, ...newDeployments]);
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error('Error loading more deployments:', error);
+    } finally {
+      setIsFetchingNextPage(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!scrollContainerRef.current || !hasMoreData) return;
+
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isFetchingNextPage && !deploymentsLoading) {
+        loadMoreDeployments();
+      }
+    }, options);
+
+    const sentinel = document.getElementById('deployments-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMoreData, isFetchingNextPage, deploymentsLoading]);
 
   const renderSourceIcon = () => {
     if (!service) return null;
@@ -54,12 +163,10 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
     }
   };
 
-  const getSourceDisplayName = () => {
-    if (!service) return '';
-    return sourceDisplayNames[service.source as Service_Type_Enum] || service.source;
+  const formatDeploymentTime = (date: Date) => {
+    return formatDistanceToNow(date, { addSuffix: true });
   };
 
-  // Animation variants
   const panelVariants = {
     hidden: {
       x: '100%',
@@ -77,6 +184,127 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
         ease: 'easeInOut',
       },
     },
+  };
+
+  const renderDeploymentsContent = () => {
+    if (deploymentsLoading) {
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 mt-4">
+          {[1, 2, 3, 4, 5].map(item => (
+            <motion.div
+              key={item}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                duration: 0.5,
+                delay: item * 0.1,
+                ease: 'easeOut',
+              }}
+            >
+              <div className="flex items-center justify-between rounded-md h-full px-3 py-4 w-full select-none border border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-[100px_1fr] items-center">
+                  <div className="mr-4">
+                    <Skeleton className="h-6 w-16" />
+                  </div>
+                  <div className="flex items-center">
+                    <div className="mr-3">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-5 w-32 mb-2" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      );
+    }
+
+    if (deploymentsError) {
+      return (
+        <div className="flex items-center justify-center py-10">
+          <div className="flex flex-col items-center text-center">
+            <p className="text-red-500 mb-2">Failed to load deployment history</p>
+            <p className="text-sm text-gray-500">Please try again later</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!allDeployments || allDeployments.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10">
+          <div className="flex flex-col items-center text-center mb-6">
+            <p className="text-gray-500 mb-2">No deployment history found</p>
+            <p className="text-sm text-gray-500">Deploy this service to see history</p>
+          </div>
+          <Button
+            onClick={handleDeployment}
+            disabled={isDeploying}
+            className="flex items-center gap-2"
+          >
+            {isDeploying ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Requesting Deployment...
+              </>
+            ) : (
+              <>
+                <Code className="h-4 w-4" />
+                Deploy
+              </>
+            )}
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-4 mt-4"
+        ref={scrollContainerRef}
+      >
+        {allDeployments.map((deployment, index) => (
+          <motion.div
+            key={deployment.id}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{
+              duration: 0.5,
+              delay: Math.min(index * 0.05, 0.5),
+              ease: 'easeOut',
+            }}
+          >
+            <DeploymentItem
+              status={mapApiStatusToUiStatus(deployment.status)}
+              environment={deployment.branch || 'Unknown'}
+              timeInfo={formatDeploymentTime(new Date(deployment.createdAt))}
+              commitHash={deployment.commitHash}
+              branch={deployment.branch}
+            />
+          </motion.div>
+        ))}
+
+        {/* Sentinel element for infinite scroll detection */}
+        <div id="deployments-sentinel" className="h-4 w-full"></div>
+
+        {/* Loading indicator for next page */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        )}
+      </motion.div>
+    );
   };
 
   return (
@@ -123,23 +351,7 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
                     <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />{' '}
                     <span>xflowup.quanganh.me</span>
                   </div>
-                  <div className="space-y-4 mt-4">
-                    <DeploymentItem
-                      status="active"
-                      environment="Production"
-                      timeInfo="Deployed 2 hours ago"
-                    />
-                    <DeploymentItem
-                      status="deploying"
-                      environment="Staging"
-                      timeInfo="Started 5 minutes ago"
-                    />
-                    <DeploymentItem
-                      status="failed"
-                      environment="Development"
-                      timeInfo="Failed 1 day ago"
-                    />
-                  </div>
+                  {renderDeploymentsContent()}
                 </div>
               </TabsContent>
 

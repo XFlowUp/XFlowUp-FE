@@ -182,6 +182,12 @@ export type CreateProjectSuccess = {
   status: Status;
 };
 
+export enum Deploy_Status {
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Success = 'SUCCESS',
+}
+
 /** The database service */
 export type DatabaseService = {
   __typename?: 'DatabaseService';
@@ -229,6 +235,42 @@ export type DeleteProjectSuccess = {
 export type DeploymentData = {
   __typename?: 'DeploymentData';
   id: Scalars['String']['output'];
+};
+
+export type DeploymentHistory = {
+  __typename?: 'DeploymentHistory';
+  /** The branch of the deployment */
+  branch?: Maybe<Scalars['String']['output']>;
+  /** Commit hash of the deployment */
+  commitHash?: Maybe<Scalars['String']['output']>;
+  /** The repository of the deployment */
+  commiterAvatar?: Maybe<Scalars['String']['output']>;
+  /** Date of deployment */
+  createdAt: Scalars['DateTime']['output'];
+  /** The id of the deployment */
+  id: Scalars['String']['output'];
+  /** The status of the deployment */
+  status: Deploy_Status;
+};
+
+/** Deployment history error */
+export type DeploymentHistoryErrorResult = {
+  __typename?: 'DeploymentHistoryErrorResult';
+  /** The error message of the deployment */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the deployment */
+  status: Status;
+};
+
+export type DeploymentHistoryResult = DeploymentHistoryErrorResult | DeploymentHistorySuccessResult;
+
+/** Deployment history */
+export type DeploymentHistorySuccessResult = {
+  __typename?: 'DeploymentHistorySuccessResult';
+  /** The deployment history */
+  data: Array<DeploymentHistory>;
+  /** The status of the deployment */
+  status: Status;
 };
 
 /** The result of the deployment request */
@@ -472,12 +514,13 @@ export type Mutation = {
   delete_project: DeleteProjectResult;
   /** Edit an environment value */
   edit_environment_value: EditEnvironmentValueResult;
-  /** Request a deployment */
+  /** Request a deployment request */
   request_deployment: DeploymentRequestResult;
   /** Send an email */
   send_email: MailResponse;
   /** Send an email with a template */
   send_email_with_template: MailResponse;
+  testQueue: Scalars['Boolean']['output'];
   topup: CreatePaymentResult;
 };
 
@@ -515,7 +558,7 @@ export type MutationEdit_Environment_ValueArgs = {
 
 export type MutationRequest_DeploymentArgs = {
   environment_id: Scalars['Float']['input'];
-  project_id: Scalars['String']['input'];
+  project_slug: Scalars['String']['input'];
   service_id: Scalars['Float']['input'];
 };
 
@@ -531,6 +574,11 @@ export type MutationSend_Email_With_TemplateArgs = {
   template: Scalars['String']['input'];
   to: Scalars['String']['input'];
   variables?: InputMaybe<Array<MailVariables>>;
+};
+
+export type MutationTestQueueArgs = {
+  branch: Scalars['String']['input'];
+  repository_url: Scalars['String']['input'];
 };
 
 export type MutationTopupArgs = {
@@ -591,6 +639,8 @@ export type Query = {
   addUser: Scalars['String']['output'];
   /** Get all projects */
   all_projects: ProjectResult;
+  /** Get deployments history */
+  deployments_history: DeploymentHistoryResult;
   /** Get environment values */
   environment_values: GetEnvironmentValuesResult;
   /** Get all environments in a project */
@@ -616,6 +666,13 @@ export type QueryAddToQueueArgs = {
 
 export type QueryAddUserArgs = {
   email: Scalars['String']['input'];
+};
+
+export type QueryDeployments_HistoryArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  per_page?: InputMaybe<Scalars['Int']['input']>;
+  project_slug: Scalars['String']['input'];
+  service_id: Scalars['Float']['input'];
 };
 
 export type QueryEnvironment_ValuesArgs = {
@@ -782,6 +839,24 @@ export type DeleteProjectMutationMutation = {
     | { __typename?: 'DeleteProjectSuccess'; message: string; status: Status };
 };
 
+export type RequestDeploymentMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  serviceId: Scalars['Float']['input'];
+  environmentId: Scalars['Float']['input'];
+}>;
+
+export type RequestDeploymentMutation = {
+  __typename?: 'Mutation';
+  request_deployment:
+    | { __typename?: 'DeploymentRequestErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'DeploymentRequestSuccessResult';
+        status: Status;
+        message?: string | null;
+        deployment: { __typename?: 'DeploymentData'; id: string };
+      };
+};
+
 export type CreateServiceMutationMutationVariables = Exact<{
   input: CreateNewServiceInput;
 }>;
@@ -834,6 +909,32 @@ export type DatabaseServicesQueryQuery = {
         __typename?: 'GetDatabaseServiceSuccess';
         status: Status;
         data: Array<{ __typename?: 'DatabaseService'; id: string; name: string; icon: string }>;
+      };
+};
+
+export type GetDeploymentsHistoryQueryVariables = Exact<{
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  projectSlug: Scalars['String']['input'];
+  serviceId: Scalars['Float']['input'];
+}>;
+
+export type GetDeploymentsHistoryQuery = {
+  __typename?: 'Query';
+  deployments_history:
+    | { __typename?: 'DeploymentHistoryErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'DeploymentHistorySuccessResult';
+        status: Status;
+        data: Array<{
+          __typename?: 'DeploymentHistory';
+          id: string;
+          status: Deploy_Status;
+          commitHash?: string | null;
+          branch?: string | null;
+          commiterAvatar?: string | null;
+          createdAt: any;
+        }>;
       };
 };
 
@@ -1155,6 +1256,109 @@ export const DeleteProjectMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteProjectMutationMutation, DeleteProjectMutationMutationVariables>;
+export const RequestDeploymentDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'RequestDeployment' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'request_deployment' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'environment_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentRequestSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'deployment' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [{ kind: 'Field', name: { kind: 'Name', value: 'id' } }],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentRequestErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RequestDeploymentMutation, RequestDeploymentMutationVariables>;
 export const CreateServiceMutationDocument = {
   kind: 'Document',
   definitions: [
@@ -1380,6 +1584,122 @@ export const DatabaseServicesQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<DatabaseServicesQueryQuery, DatabaseServicesQueryQueryVariables>;
+export const GetDeploymentsHistoryDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetDeploymentsHistory' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deployments_history' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'per_page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentHistorySuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'commitHash' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'branch' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'commiterAvatar' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentHistoryErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetDeploymentsHistoryQuery, GetDeploymentsHistoryQueryVariables>;
 export const EnvironmentsQueryDocument = {
   kind: 'Document',
   definitions: [

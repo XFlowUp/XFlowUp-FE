@@ -17,10 +17,8 @@ export function ArchitectureProvider({
 }) {
   const addServiceNode = useCallback(
     (serviceData: ServiceNodeData) => {
-      const nodeId = `service-${Date.now()}`;
-
       const newNode: Node = {
-        id: nodeId,
+        id: serviceData.id,
         type: 'service',
         position: {
           x: 100 + Math.random() * 500,

@@ -82,6 +82,7 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
       const result = response.data?.create_service;
       if (result?.__typename === 'CreateNewServiceSuccessResult') {
         const serviceData: ServiceNodeData = {
+          id: result.data.id,
           title: formData.name,
           description: formData.description,
           source: Service_Type_Enum.Database,

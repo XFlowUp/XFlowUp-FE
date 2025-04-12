@@ -8,17 +8,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Deploy_Status } from '@/gql/graphql';
 
 // Status badge variants
 export type DeploymentStatus = 'active' | 'deploying' | 'failed';
+
+// Map API status to UI status
+export const mapApiStatusToUiStatus = (status: Deploy_Status): DeploymentStatus => {
+  switch (status) {
+    case Deploy_Status.Success:
+      return 'active';
+    case Deploy_Status.Pending:
+      return 'deploying';
+    case Deploy_Status.Failed:
+      return 'failed';
+    default:
+      return 'failed';
+  }
+};
 
 export interface DeploymentItemProps {
   status: DeploymentStatus;
   environment: string;
   timeInfo: string;
+  commitHash?: string | null;
+  branch?: string | null;
 }
 
-export const DeploymentItem = ({ status, environment, timeInfo }: DeploymentItemProps) => {
+export const DeploymentItem = ({
+  status,
+  environment,
+  timeInfo,
+  commitHash,
+  branch,
+}: DeploymentItemProps) => {
   // Configuration based on status
   const statusConfig = {
     active: {
@@ -75,6 +98,12 @@ export const DeploymentItem = ({ status, environment, timeInfo }: DeploymentItem
           <div>
             <h4 className="font-medium">{environment}</h4>
             <p className="text-sm text-gray-500">{timeInfo}</p>
+            {commitHash && (
+              <p className="text-xs text-gray-500 mt-1">
+                Commit: {commitHash.substring(0, 7)}
+                {branch && ` (${branch})`}
+              </p>
+            )}
           </div>
         </div>
       </div>

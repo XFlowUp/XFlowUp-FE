@@ -89,6 +89,7 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
       const result = response.data?.create_service;
       if (result?.__typename === 'CreateNewServiceSuccessResult') {
         const serviceData: ServiceNodeData = {
+          id: result.data.id,
           title: formData.name,
           description: repository.name || formData.name,
           source: 'GitHub',

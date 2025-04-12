@@ -13,6 +13,7 @@ const sourceDisplayNames = {
 };
 
 export interface ServiceNodeData {
+  id: string;
   title: string;
   description: string;
   timeAgo: string;
