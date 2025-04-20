@@ -29,7 +29,7 @@ import useAllServices from '@/shared/api/queries/useAllServices';
 import { useParams } from 'next/navigation';
 import ServiceNode from './architecture/ServiceNode';
 import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
-import ServiceDialog from './architecture/ServiceDialog';
+import ServiceDialog from './architecture/CreateServiceDialog';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -196,6 +196,25 @@ function Flow() {
 
   const handleFitView = async () => {
     if (rfInstance) {
+      if (selectedService) {
+        const selectedNode = nodes.find(node => node.id === selectedService.id);
+        if (selectedNode) {
+          const nodePosition = selectedNode.position;
+          const remainingWidth = window.innerWidth / 3;
+          const centerX = remainingWidth / 2 - 40;
+
+          await rfInstance.setViewport(
+            {
+              x: centerX - nodePosition.x,
+              y: window.innerHeight / 2 - nodePosition.y,
+              zoom: 0.9,
+            },
+            { duration: 800 }
+          );
+          return;
+        }
+      }
+
       await rfInstance.fitView({
         duration: 300,
         padding: 0.2,
@@ -246,7 +265,6 @@ function Flow() {
         return;
       }
 
-      // Only set selectedService for non-skeleton nodes
       if (!node.data.isSkeleton || node.data.isEmptyState) {
         setSelectedService({
           id: node.id,
@@ -257,24 +275,19 @@ function Flow() {
           icon: node.data.icon,
         });
 
-        // Center the selected node in the remaining 1/3 space on the left
         if (rfInstance) {
-          setTimeout(() => {
-            // Give time for the panel to slide in
-            const nodePosition = node.position;
-            const remainingWidth = window.innerWidth / 3; // 1/3 of screen width on the left
-            const centerX = remainingWidth / 2 - 40; // Center of the left 1/3 space with offset to avoid being too close to the panel
+          const nodePosition = node.position;
+          const remainingWidth = window.innerWidth / 3;
+          const centerX = remainingWidth / 2 - 40;
 
-            // Adjust viewport to position the node at the center of the left 1/3 space
-            rfInstance.setViewport(
-              {
-                x: centerX - nodePosition.x,
-                y: window.innerHeight / 2 - nodePosition.y,
-                zoom: 0.9,
-              },
-              { duration: 800 }
-            );
-          }, 100);
+          rfInstance.setViewport(
+            {
+              x: centerX - nodePosition.x,
+              y: window.innerHeight / 2 - nodePosition.y,
+              zoom: 0.9,
+            },
+            { duration: 800 }
+          );
         }
       }
     },

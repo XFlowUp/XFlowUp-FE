@@ -2,13 +2,14 @@ import React from 'react';
 import { X, CheckCircle, MoreVertical, RefreshCw, PlayCircle, Trash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Avatar } from '@/components/avatar-component';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Deploy_Status } from '@/gql/graphql';
+import { Deploy_Status, Service_Type_Enum } from '@/gql/graphql';
 
 // Status badge variants
 export type DeploymentStatus = 'active' | 'deploying' | 'failed';
@@ -28,19 +29,23 @@ export const mapApiStatusToUiStatus = (status: Deploy_Status): DeploymentStatus 
 };
 
 export interface DeploymentItemProps {
+  source: Service_Type_Enum;
   status: DeploymentStatus;
   environment: string;
   timeInfo: string;
   commitHash?: string | null;
   branch?: string | null;
+  avatar?: string | null;
 }
 
 export const DeploymentItem = ({
+  source,
   status,
   environment,
   timeInfo,
   commitHash,
   branch,
+  avatar,
 }: DeploymentItemProps) => {
   // Configuration based on status
   const statusConfig = {
@@ -81,6 +86,21 @@ export const DeploymentItem = ({
 
   const config = statusConfig[status];
 
+  const getNameService = (source: Service_Type_Enum) => {
+    switch (source) {
+      case Service_Type_Enum.GithubRepo:
+        return 'GitHub';
+      case Service_Type_Enum.Database:
+        return 'Database';
+      case Service_Type_Enum.DockerImage:
+        return 'Docker';
+      case Service_Type_Enum.Functions:
+        return 'Functions';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <div
       className={`flex items-center justify-between rounded-md h-full px-3 py-4 w-full select-none border ${config.backgroundClasses}`}
@@ -94,13 +114,15 @@ export const DeploymentItem = ({
           </Badge>
         </div>
         <div className="flex items-center">
-          <div className="mr-3">{config.icon}</div>
+          <div className="mr-4">{avatar ? <Avatar src={avatar} /> : config.icon}</div>
           <div>
             <h4 className="font-medium">{environment}</h4>
-            <p className="text-sm text-gray-500">{timeInfo}</p>
+            <p className="text-sm text-gray-500">
+              {timeInfo} via {getNameService(source)}
+            </p>
             {commitHash && (
               <p className="text-xs text-gray-500 mt-1">
-                Commit: {commitHash.substring(0, 7)}
+                Commit: {commitHash}
                 {branch && ` (${branch})`}
               </p>
             )}

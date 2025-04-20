@@ -242,8 +242,8 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
       return (
         <div className="flex flex-col items-center justify-center py-10">
           <div className="flex flex-col items-center text-center mb-6">
-            <p className="text-gray-500 mb-2">No deployment history found</p>
-            <p className="text-sm text-gray-500">Deploy this service to see history</p>
+            <p className="text-gray-500 dark:text-gray-300 mb-2">No deployment history found</p>
+            <p className="text-sm text-gray-400">Deploy this service to see history</p>
           </div>
           <Button
             onClick={handleDeployment}
@@ -285,11 +285,13 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
             }}
           >
             <DeploymentItem
+              source={service?.source}
               status={mapApiStatusToUiStatus(deployment.status)}
               environment={deployment.branch || 'Unknown'}
               timeInfo={formatDeploymentTime(new Date(deployment.createdAt))}
               commitHash={deployment.commitHash}
               branch={deployment.branch}
+              avatar={deployment.commiterAvatar}
             />
           </motion.div>
         ))}
@@ -315,11 +317,11 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
           animate="visible"
           exit="hidden"
           variants={panelVariants}
-          className="fixed right-0 top-0 bottom-0 w-2/3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-10 rounded-l-lg"
+          className="fixed right-0 top-0 bottom-0 w-2/3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg z-10 rounded-l-lg"
           style={{ marginTop: '80px' }}
         >
-          <Tabs defaultValue="deployments" className="w-full">
-            <div className="px-6 md:px-12 pt-8 md:pt-12 border-b border-gray-200 dark:border-gray-700">
+          <Tabs defaultValue="deployments" className="w-full h-full flex flex-col">
+            <div className="px-6 md:px-12 pt-8 md:pt-12 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex items-center justify-between w-full mb-6">
                 <div className="flex items-center space-x-4">
                   {renderSourceIcon()}
@@ -344,13 +346,13 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
               </TabsList>
             </div>
 
-            <div className="px-6 md:px-12 py-6">
-              <TabsContent value="deployments" className="h-full">
-                <div className="flex flex-col pb-8">
-                  <div className="flex gap-x-2 items-center text-sm">
-                    <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />{' '}
-                    <span>xflowup.quanganh.me</span>
-                  </div>
+            <div className="px-6 md:px-12 py-6 flex-grow overflow-hidden">
+              <TabsContent value="deployments" className="h-full flex flex-col ">
+                <div className="flex gap-x-2 items-center text-sm mb-4 flex-shrink-0">
+                  <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />{' '}
+                  <span>xflowup.quanganh.me</span>
+                </div>
+                <div className="flex-grow overflow-auto h-full pr-4">
                   {renderDeploymentsContent()}
                 </div>
               </TabsContent>
