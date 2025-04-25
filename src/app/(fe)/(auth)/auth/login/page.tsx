@@ -4,12 +4,10 @@ import { Button } from '@/components/ui/button';
 import { FaGithub } from '@react-icons/all-files/fa/FaGithub';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/shared/stores/auth';
-import { Skeleton } from '@/components/ui/skeleton';
-import { UserDropdown } from '@/components/user-nav';
 import useUserInfo from '@/shared/api/queries/useUserInfo';
 import { useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { LoadingPageWithDots } from '@/components/ui/loading-spinner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,8 +16,8 @@ export default function LoginPage() {
   const { theme } = useTheme();
   const [showModal, setShowModal] = React.useState(true);
   const isDark = theme === 'dark';
+  const [redirected, setRedirected] = React.useState(false);
 
-  // Prevent modal from being closed
   useEffect(() => {
     if (!showModal) setShowModal(true);
   }, [showModal]);
@@ -27,40 +25,19 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isLoading && data) {
       setUser(data?.user_info);
+
+      if (data.user_info) {
+        setRedirected(true);
+        router.push('/dashboard');
+      }
     }
-  }, [isLoading, data, setUser]);
+  }, [isLoading, data, setUser, router]);
 
-  const onLogin = React.useCallback(() => {
-    router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/github`);
-  }, [router]);
-
-  const handleNavigateToDashboard = () => {
-    router.push('/dashboard');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-9 w-[100px]" />
-        <Skeleton className="h-8 w-8 rounded-full" />
-      </div>
-    );
+  if (isLoading || redirected) {
+    return <LoadingPageWithDots />;
   }
-
-  if (!isLoading && data && data.user_info) {
-    return (
-      <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={handleNavigateToDashboard}>
-          Dashboard
-        </Button>
-        <UserDropdown />
-      </div>
-    );
-  }
-
   return (
     <div className={`min-h-screen w-full relative ${isDark ? 'bg-gray-900' : 'bg-background'}`}>
-      {/* Landing page background for light theme */}
       {!isDark && (
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
@@ -157,15 +134,13 @@ export default function LoginPage() {
               <foreignObject x="100" y="210" width="200" height="60">
                 <div className="flex justify-center">
                   <Button
-                    onClick={onLogin}
-                    className={`${
-                      isDark
-                        ? 'bg-white text-black hover:bg-gray-200'
-                        : 'bg-black text-white hover:bg-gray-800'
-                    } px-3 py-2 rounded-md w-[140px]`}
-                    style={{ fontSize: '0.6rem' }}
+                    onClick={() => {
+                      setRedirected(true);
+                      router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/github`);
+                    }}
+                    className="mb-8 px-8"
                   >
-                    <FaGithub className="mr-1 text-[0.6rem]" /> Continue with GitHub
+                    <FaGithub className="scale-125 mr-2" /> Continue with GitHub
                   </Button>
                 </div>
               </foreignObject>

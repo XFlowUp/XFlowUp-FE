@@ -232,6 +232,22 @@ export type DeleteProjectSuccess = {
   status: Status;
 };
 
+export type DeleteServiceResult = DeleteServiceResultError | DeleteServiceResultSuccess;
+
+export type DeleteServiceResultError = {
+  __typename?: 'DeleteServiceResultError';
+  /** Message of the operation */
+  message?: Maybe<Scalars['String']['output']>;
+  /** Status of the operation */
+  status: Status;
+};
+
+export type DeleteServiceResultSuccess = {
+  __typename?: 'DeleteServiceResultSuccess';
+  /** Status of the operation */
+  status: Status;
+};
+
 export type DeploymentData = {
   __typename?: 'DeploymentData';
   id: Scalars['String']['output'];
@@ -439,6 +455,24 @@ export type GetEnvironmentsSuccess = {
   status: Status;
 };
 
+export type GetProjectDetailsResult = GetProjectDetailsResultError | GetProjectDetailsResultSuccess;
+
+export type GetProjectDetailsResultError = {
+  __typename?: 'GetProjectDetailsResultError';
+  /** The error message */
+  message: Scalars['String']['output'];
+  /** The status of the result */
+  status: Status;
+};
+
+export type GetProjectDetailsResultSuccess = {
+  __typename?: 'GetProjectDetailsResultSuccess';
+  /** The project details */
+  data: ProjectDetail;
+  /** The status of the result */
+  status: Status;
+};
+
 export type GetRepositoryErrorResult = {
   __typename?: 'GetRepositoryErrorResult';
   /** The error message */
@@ -512,6 +546,8 @@ export type Mutation = {
   delete_environment: DeleteEnvironmentResult;
   /** Delete a project */
   delete_project: DeleteProjectResult;
+  /** Delete a service */
+  delete_service: DeleteServiceResult;
   /** Edit an environment value */
   edit_environment_value: EditEnvironmentValueResult;
   /** Request a deployment request */
@@ -522,6 +558,8 @@ export type Mutation = {
   send_email_with_template: MailResponse;
   testQueue: Scalars['Boolean']['output'];
   topup: CreatePaymentResult;
+  /** Update the details of a project */
+  update_project_details: UpdateProjectDetailsResult;
 };
 
 export type MutationAdd_EnvironmentArgs = {
@@ -550,6 +588,11 @@ export type MutationDelete_EnvironmentArgs = {
 
 export type MutationDelete_ProjectArgs = {
   slug: Scalars['String']['input'];
+};
+
+export type MutationDelete_ServiceArgs = {
+  project_slug: Scalars['String']['input'];
+  service_id: Scalars['Float']['input'];
 };
 
 export type MutationEdit_Environment_ValueArgs = {
@@ -585,6 +628,11 @@ export type MutationTopupArgs = {
   data: CreatePaymentInput;
 };
 
+export type MutationUpdate_Project_DetailsArgs = {
+  input: UpdateProjectDetailsInput;
+  project_slug: Scalars['String']['input'];
+};
+
 /** The owner of the repository */
 export type Owner = {
   __typename?: 'Owner';
@@ -613,6 +661,16 @@ export type Project = {
   updated_at: Scalars['DateTime']['output'];
   /** The url of the project */
   url: Scalars['String']['output'];
+};
+
+export type ProjectDetail = {
+  __typename?: 'ProjectDetail';
+  /** The description of the project */
+  description: Scalars['String']['output'];
+  /** The name of the project */
+  name: Scalars['String']['output'];
+  /** The slug of the project */
+  slug: Scalars['String']['output'];
 };
 
 export type ProjectError = {
@@ -649,6 +707,8 @@ export type Query = {
   get_all_services: GetAllServicesResult;
   /** Get all database services for creating new service */
   get_database_services: GetDatabaseServiceResult;
+  /** Get the details of a project */
+  get_project_details: GetProjectDetailsResult;
   /** Get all repositories for creating new service */
   get_repositories: GetRepositoryResult;
   repositories: Array<Repository>;
@@ -684,6 +744,10 @@ export type QueryEnvironmentsArgs = {
 };
 
 export type QueryGet_All_ServicesArgs = {
+  project_slug: Scalars['String']['input'];
+};
+
+export type QueryGet_Project_DetailsArgs = {
   project_slug: Scalars['String']['input'];
 };
 
@@ -783,6 +847,31 @@ export type TeamMember = {
   profile_url?: Maybe<Scalars['String']['output']>;
 };
 
+export type UpdateProjectDetailsInput = {
+  /** The description of the project */
+  description: Scalars['String']['input'];
+  /** The name of the project */
+  name: Scalars['String']['input'];
+};
+
+export type UpdateProjectDetailsResult =
+  | UpdateProjectDetailsResultError
+  | UpdateProjectDetailsResultSuccess;
+
+export type UpdateProjectDetailsResultError = {
+  __typename?: 'UpdateProjectDetailsResultError';
+  /** The error message */
+  message: Scalars['String']['output'];
+  /** The status of the result */
+  status: Status;
+};
+
+export type UpdateProjectDetailsResultSuccess = {
+  __typename?: 'UpdateProjectDetailsResultSuccess';
+  /** The status of the result */
+  status: Status;
+};
+
 export type UserInfo = {
   __typename?: 'UserInfo';
   /** The email of the user */
@@ -803,6 +892,17 @@ export type CreateEnvironmentMutation = {
   add_environment:
     | { __typename?: 'AddEnvironmentsError'; status: Status; message?: string | null }
     | { __typename?: 'AddEnvironmentsSuccess'; status: Status };
+};
+
+export type Edit_Environment_ValueMutationVariables = Exact<{
+  input: EditEnvironmentValueInput;
+}>;
+
+export type Edit_Environment_ValueMutation = {
+  __typename?: 'Mutation';
+  edit_environment_value:
+    | { __typename?: 'EditEnvironmentValueError'; status: Status; message?: string | null }
+    | { __typename?: 'EditEnvironmentValueSuccess'; status: Status };
 };
 
 export type CreateProjectMutationMutationVariables = Exact<{
@@ -837,6 +937,18 @@ export type DeleteProjectMutationMutation = {
   delete_project:
     | { __typename?: 'DeleteProjectError'; message: string; status: Status }
     | { __typename?: 'DeleteProjectSuccess'; message: string; status: Status };
+};
+
+export type UpdateProjectDetailsMutationMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  input: UpdateProjectDetailsInput;
+}>;
+
+export type UpdateProjectDetailsMutationMutation = {
+  __typename?: 'Mutation';
+  update_project_details:
+    | { __typename?: 'UpdateProjectDetailsResultError'; status: Status; message: string }
+    | { __typename?: 'UpdateProjectDetailsResultSuccess'; status: Status };
 };
 
 export type RequestDeploymentMutationVariables = Exact<{
@@ -876,6 +988,30 @@ export type CreateServiceMutationMutation = {
           serviceType: Service_Type_Enum;
         };
       };
+};
+
+export type DeleteServiceMutationMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  serviceId: Scalars['Float']['input'];
+}>;
+
+export type DeleteServiceMutationMutation = {
+  __typename?: 'Mutation';
+  delete_service:
+    | { __typename?: 'DeleteServiceResultError'; status: Status; message?: string | null }
+    | { __typename?: 'DeleteServiceResultSuccess'; status: Status };
+};
+
+export type AddTeamMemberMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  member: AddTeamMemberInput;
+}>;
+
+export type AddTeamMemberMutation = {
+  __typename?: 'Mutation';
+  add_team_member:
+    | { __typename?: 'AddTeamMemberErrorResult'; status: Status; message: string }
+    | { __typename?: 'AddTeamMemberSuccessResult'; email: string; status: Status };
 };
 
 export type GetAllServicesQueryVariables = Exact<{
@@ -938,6 +1074,26 @@ export type GetDeploymentsHistoryQuery = {
       };
 };
 
+export type GetEnvironmentValuesQueryVariables = Exact<{
+  input: GetEnvironmentValuesInput;
+}>;
+
+export type GetEnvironmentValuesQuery = {
+  __typename?: 'Query';
+  environment_values:
+    | { __typename?: 'GetEnvironmentValuesErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetEnvironmentValuesSuccessResult';
+        status: Status;
+        environmentValues: Array<{
+          __typename?: 'Environment';
+          id: string;
+          key: string;
+          value: string;
+        }>;
+      };
+};
+
 export type EnvironmentsQueryQueryVariables = Exact<{
   projectSlug: Scalars['String']['input'];
 }>;
@@ -975,6 +1131,21 @@ export type ProjectsQueryQuery = {
       };
 };
 
+export type GetProjectDetailsQueryVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+}>;
+
+export type GetProjectDetailsQuery = {
+  __typename?: 'Query';
+  get_project_details:
+    | { __typename?: 'GetProjectDetailsResultError'; status: Status; message: string }
+    | {
+        __typename?: 'GetProjectDetailsResultSuccess';
+        status: Status;
+        data: { __typename?: 'ProjectDetail'; name: string; description: string; slug: string };
+      };
+};
+
 export type GetRepositoriesQueryVariables = Exact<{
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
@@ -1001,6 +1172,30 @@ export type GetRepositoriesQuery = {
           updated_at?: string | null;
           owner: { __typename?: 'Owner'; id: number; login: string; avatar_url: string };
         }>;
+      };
+};
+
+export type GetTeamMembersQueryVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+}>;
+
+export type GetTeamMembersQuery = {
+  __typename?: 'Query';
+  team_members:
+    | { __typename?: 'GetTeamError'; status: Status; message: string }
+    | {
+        __typename?: 'GetTeamSuccess';
+        status: Status;
+        team: {
+          __typename?: 'Team';
+          slug: string;
+          members: Array<{
+            __typename?: 'TeamMember';
+            email: string;
+            name: string;
+            profile_url?: string | null;
+          }>;
+        };
       };
 };
 
@@ -1095,6 +1290,75 @@ export const CreateEnvironmentDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateEnvironmentMutation, CreateEnvironmentMutationVariables>;
+export const Edit_Environment_ValueDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'Edit_environment_value' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'EditEnvironmentValueInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'edit_environment_value' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'EditEnvironmentValueSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'EditEnvironmentValueError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  Edit_Environment_ValueMutation,
+  Edit_Environment_ValueMutationVariables
+>;
 export const CreateProjectMutationDocument = {
   kind: 'Document',
   definitions: [
@@ -1256,6 +1520,88 @@ export const DeleteProjectMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteProjectMutationMutation, DeleteProjectMutationMutationVariables>;
+export const UpdateProjectDetailsMutationDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateProjectDetailsMutation' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateProjectDetailsInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'update_project_details' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateProjectDetailsResultSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateProjectDetailsResultError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateProjectDetailsMutationMutation,
+  UpdateProjectDetailsMutationMutationVariables
+>;
 export const RequestDeploymentDocument = {
   kind: 'Document',
   definitions: [
@@ -1440,6 +1786,167 @@ export const CreateServiceMutationDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateServiceMutationMutation, CreateServiceMutationMutationVariables>;
+export const DeleteServiceMutationDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteServiceMutation' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delete_service' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeleteServiceResultSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeleteServiceResultError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteServiceMutationMutation, DeleteServiceMutationMutationVariables>;
+export const AddTeamMemberDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'AddTeamMember' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'member' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'AddTeamMemberInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'add_team_member' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'member' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'member' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'AddTeamMemberSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'AddTeamMemberErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AddTeamMemberMutation, AddTeamMemberMutationVariables>;
 export const GetAllServicesDocument = {
   kind: 'Document',
   definitions: [
@@ -1700,6 +2207,86 @@ export const GetDeploymentsHistoryDocument = {
     },
   ],
 } as unknown as DocumentNode<GetDeploymentsHistoryQuery, GetDeploymentsHistoryQueryVariables>;
+export const GetEnvironmentValuesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetEnvironmentValues' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'GetEnvironmentValuesInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'environment_values' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetEnvironmentValuesSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'environmentValues' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'key' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'value' } },
+                          ],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetEnvironmentValuesErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetEnvironmentValuesQuery, GetEnvironmentValuesQueryVariables>;
 export const EnvironmentsQueryDocument = {
   kind: 'Document',
   definitions: [
@@ -1846,6 +2433,86 @@ export const ProjectsQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<ProjectsQueryQuery, ProjectsQueryQueryVariables>;
+export const GetProjectDetailsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetProjectDetails' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_project_details' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetProjectDetailsResultSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetProjectDetailsResultError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetProjectDetailsQuery, GetProjectDetailsQueryVariables>;
 export const GetRepositoriesDocument = {
   kind: 'Document',
   definitions: [
@@ -1973,6 +2640,96 @@ export const GetRepositoriesDocument = {
     },
   ],
 } as unknown as DocumentNode<GetRepositoriesQuery, GetRepositoriesQueryVariables>;
+export const GetTeamMembersDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetTeamMembers' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'team_members' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetTeamSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'team' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'members' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'profile_url' } },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetTeamError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetTeamMembersQuery, GetTeamMembersQueryVariables>;
 export const GetUserInfoQueryDocument = {
   kind: 'Document',
   definitions: [

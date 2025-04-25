@@ -23,8 +23,34 @@ const GET_PROJECTS = gql(`
 }
 `);
 
+const GET_PROJECT_DETAILS = gql(`
+query GetProjectDetails($projectSlug: String!) {
+  get_project_details(project_slug: $projectSlug) {
+    ... on GetProjectDetailsResultSuccess {
+      status
+      data {
+        name
+        description
+        slug
+      }
+    }
+    ... on GetProjectDetailsResultError {
+      status
+      message
+    }
+  }
+}
+`);
+
 export default function useProjects() {
   return useQuery(GET_PROJECTS, {
+    fetchPolicy: 'no-cache',
+  });
+}
+
+export function useProjectDetails(projectSlug: string) {
+  return useQuery(GET_PROJECT_DETAILS, {
+    variables: { projectSlug },
     fetchPolicy: 'cache-first',
   });
 }

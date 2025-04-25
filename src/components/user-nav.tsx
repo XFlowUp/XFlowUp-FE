@@ -1,5 +1,4 @@
 'use client';
-
 import { ReactNode } from 'react';
 import { IoMdPower } from '@react-icons/all-files/io/IoMdPower';
 import { useTheme } from 'next-themes';

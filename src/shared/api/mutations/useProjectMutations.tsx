@@ -1,4 +1,5 @@
 import { gql } from '@/gql/gql';
+import { UpdateProjectDetailsInput } from '@/gql/graphql';
 import { useMutation } from '@apollo/client';
 
 const CREATE_PROJECT = gql(`
@@ -37,10 +38,36 @@ const DELETE_PROJECT = gql(`
   }
 `);
 
+const UPDATE_PROJECT = gql(`
+
+
+
+mutation UpdateProjectDetailsMutation($projectSlug: String!, $input: UpdateProjectDetailsInput!) {
+  update_project_details(project_slug: $projectSlug, input: $input) {
+    ... on UpdateProjectDetailsResultSuccess {
+      status
+    }
+    ... on UpdateProjectDetailsResultError {
+      status
+      message
+    }
+  }
+}
+`);
+
 export function useCreateProject() {
   return useMutation(CREATE_PROJECT);
 }
 
 export function useDeleteProject() {
   return useMutation(DELETE_PROJECT);
+}
+
+export function useUpdateProjectDetails(projectSlug: string, input: UpdateProjectDetailsInput) {
+  return useMutation(UPDATE_PROJECT, {
+    variables: {
+      projectSlug,
+      input,
+    },
+  });
 }

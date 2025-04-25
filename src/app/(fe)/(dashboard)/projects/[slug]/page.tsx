@@ -5,6 +5,7 @@ import { UserDropdown } from '@/components/user-nav';
 import { Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlanHeader from '@/app/(fe)/(dashboard)/projects/_components/PlanHeader';
+import SettingsContent from '../_components/SettingsContent';
 
 export default async function ProjectsPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -77,9 +78,9 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
           </TabsContent>
           <TabsContent
             value="settings"
-            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
+            className="h-full p-0 m-0 overflow-hidden data-[state=active]:block"
           >
-            <div className="p-6">Settings content</div>
+            <SettingsContent />
           </TabsContent>
         </main>
       </Tabs>

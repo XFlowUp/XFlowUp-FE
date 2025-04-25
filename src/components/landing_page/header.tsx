@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import * as React from 'react';
-import { useTheme } from 'next-themes';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -25,7 +24,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import LoginButton from '@/components/landing_page/login-button';
-import ThemeLogo from '@/components/theme-logo'; // Import the ThemeLogo component
+import ThemeLogo from '@/components/theme-logo';
 
 const products = [
   {
@@ -109,9 +108,7 @@ export function Header() {
               darkLogo="/white-rocket-logo.png"
               lightLogo="/black-rocket-logo.png"
               name="XFlowUp"
-              width={24}
-              height={24}
-              className="h-6 w-6"
+              className="h-8 w-8"
             />
             <span className="font-bold inline-block">XFlowUp</span>
           </Link>

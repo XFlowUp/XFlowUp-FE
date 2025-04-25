@@ -17,7 +17,12 @@ export default function useAuth() {
   const logout = () => {
     logoutFromStore();
     client.resetStore();
-    router.push('/');
+
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    } else {
+      router.push('/');
+    }
   };
 
   return { user, isAuthenticated, isLoading, setIsLoading, setUser, logout };

@@ -3,26 +3,34 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { FaGithub } from '@react-icons/all-files/fa/FaGithub';
-import { Avatar } from '../avatar-component';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/shared/stores/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserDropdown } from '../user-nav';
 import useUserInfo from '@/shared/api/queries/useUserInfo';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 
 export default function LoginButton() {
   const router = useRouter();
   const { loading: isLoading, data } = useUserInfo();
+  const { isAuthenticated, user } = useAuthStore();
   const setUser = useAuthStore(state => state.setUser);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [showDialog, setShowDialog] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowDialog(false);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     if (!isLoading && data) {
       setUser(data?.user_info);
     }
-  }, [isLoading, data]);
+  }, [isLoading, data, setUser]);
 
   const onLogin = React.useCallback(() => {
     router.push(`${process.env.NEXT_PUBLIC_API_URL}/auth/github`);
@@ -41,7 +49,7 @@ export default function LoginButton() {
     );
   }
 
-  if (!isLoading && data && data.user_info) {
+  if (isAuthenticated && user) {
     return (
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={handleNavigateToDashboard}>
@@ -53,7 +61,7 @@ export default function LoginButton() {
   }
 
   return (
-    <Dialog>
+    <Dialog open={showDialog} onOpenChange={setShowDialog}>
       <DialogTrigger asChild>
         <Button>Login</Button>
       </DialogTrigger>
@@ -125,7 +133,6 @@ export default function LoginButton() {
                 />
               </div>
             </foreignObject>
-
             <foreignObject x="75" y="140" width="250" height="60">
               <div className="text-center">
                 <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
@@ -138,16 +145,8 @@ export default function LoginButton() {
             </foreignObject>
             <foreignObject x="100" y="210" width="200" height="60">
               <div className="flex justify-center">
-                <Button
-                  onClick={onLogin}
-                  className={`${
-                    isDark
-                      ? 'bg-white text-black hover:bg-gray-200'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  } px-3 py-2 rounded-md w-[140px]`}
-                  style={{ fontSize: '0.6rem' }}
-                >
-                  <FaGithub className="mr-1 text-[0.6rem]" /> Continue with GitHub
+                <Button onClick={onLogin} className="mb-8 px-8">
+                  <FaGithub className="scale-125 mr-2" /> Continue with GitHub
                 </Button>
               </div>
             </foreignObject>

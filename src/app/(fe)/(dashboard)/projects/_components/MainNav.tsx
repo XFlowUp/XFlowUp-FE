@@ -7,6 +7,7 @@ import ProjectsDropdown from './ProjectsDropdown';
 import CreateEnvironmentDialog from './CreateEnvironmentDialog';
 import EnvironmentsDropdown from './EnvironmentsDropdown';
 import Link from 'next/link';
+import ThemeLogo from '@/components/theme-logo';
 
 interface MainNavProps {
   slug: string;
@@ -19,8 +20,14 @@ export function MainNav(props: MainNavProps) {
 
   return (
     <div className="flex items-center space-x-4">
-      <Link className="flex items-center space-x-2" href="/dashboard">
-        <Avatar src="https://github.com/shadcn.png" />
+      <Link href="/dashboard" className="flex items-center space-x-2">
+        <ThemeLogo
+          darkLogo="/white-rocket-logo.png"
+          lightLogo="/black-rocket-logo.png"
+          name="XFlowUp"
+          className="h-8 w-8"
+        />
+        <span className="font-bold inline-block">XFlowUp</span>
       </Link>
       <nav className="flex items-center space-x-2">
         <ProjectsDropdown slug={slug} />

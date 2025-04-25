@@ -24,7 +24,7 @@ const GET_ALL_SERVICES = gql(`
 
 export default function useAllServices(projectSlug: string) {
   return useQuery(GET_ALL_SERVICES, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-first',
     variables: { projectSlug },
   });
 }

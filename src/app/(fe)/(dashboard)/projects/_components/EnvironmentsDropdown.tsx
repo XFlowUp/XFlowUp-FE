@@ -12,6 +12,8 @@ import { ChevronDownIcon } from '@/components/ui/chevron-down';
 import { Plus } from 'lucide-react';
 import { CheckIcon } from '@/components/ui/check';
 import { useEnvironment } from './EnvironmentContext';
+import { notFound } from 'next/navigation';
+import { useEffect } from 'react';
 
 export interface EnvironmentsDropdownProps {
   slug: string;
@@ -27,6 +29,12 @@ const EnvironmentsDropdown = ({ onNewEnvironmentClick }: EnvironmentsDropdownPro
     loading: envLoading,
     error,
   } = useEnvironment();
+
+  useEffect(() => {
+    if (error) {
+      notFound();
+    }
+  }, [error]);
 
   return (
     <DropdownMenu>

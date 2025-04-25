@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Avatar } from '@/components/avatar-component';
 import { UserDropdown } from '@/components/user-nav';
 import { SettingsGearIcon } from '@/components/ui/settings-gear';
 import { useAuthStore } from '@/shared/stores/auth';
 import Projects from './_components/Projects';
 import CreateProjectButton from '@/app/(fe)/(dashboard)/dashboard/_components/CreateProjectButton';
 import { useState } from 'react';
+import ThemeLogo from '@/components/theme-logo';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
@@ -20,7 +20,15 @@ export default function Dashboard() {
     <div className="flex flex-col min-h-screen">
       <div className="container mx-auto px-5 lg:px-8 max-w-6xl">
         <header className="flex justify-between items-center py-4">
-          <Avatar src="https://github.com/shadcn.png" />
+          <div className="flex items-center space-x-2">
+            <ThemeLogo
+              darkLogo="/white-rocket-logo.png"
+              lightLogo="/black-rocket-logo.png"
+              name="XFlowUp"
+              className="h-8 w-8"
+            />
+            <span className="font-bold inline-block">XFlowUp</span>
+          </div>
           <div className="flex flex-row justify-between items-center">
             <a
               href="#"

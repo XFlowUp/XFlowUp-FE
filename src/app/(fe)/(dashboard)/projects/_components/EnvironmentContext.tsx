@@ -22,7 +22,14 @@ export function EnvironmentProvider({
 }) {
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('');
   const [selectedEnvironmentName, setSelectedEnvironmentName] = useState<string>('');
-  const { data, loading, error } = useEnvironments(projectSlug);
+  const { data, loading, error: networkError } = useEnvironments(projectSlug);
+
+  const applicationError =
+    data?.environments.__typename === 'GetEnvironmentsError'
+      ? { message: data.environments.message }
+      : undefined;
+
+  const error = networkError || applicationError;
 
   const environments =
     data?.environments?.__typename === 'GetEnvironmentsSuccess'
