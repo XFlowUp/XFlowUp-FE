@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import * as React from 'react';
+import { useTheme } from 'next-themes';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,8 +25,9 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import LoginButton from '@/components/landing_page/login-button';
+import ThemeLogo from '@/components/theme-logo'; // Import the ThemeLogo component
 
-const products: { title: string; href: string; description: string }[] = [
+const products = [
   {
     title: 'Product Overview',
     href: '/products',
@@ -48,7 +50,7 @@ const products: { title: string; href: string; description: string }[] = [
   },
 ];
 
-const developers: { title: string; href: string; description: string }[] = [
+const developers = [
   {
     title: 'Documentation',
     href: '/docs',
@@ -103,14 +105,14 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-4 sm:gap-6">
           <Link href="/" className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 76 65"
-              fill="currentColor"
+            <ThemeLogo
+              darkLogo="/white-rocket-logo.png"
+              lightLogo="/black-rocket-logo.png"
+              name="XFlowUp"
+              width={24}
+              height={24}
               className="h-6 w-6"
-            >
-              <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-            </svg>
+            />
             <span className="font-bold inline-block">XFlowUp</span>
           </Link>
           <nav className="hidden md:flex gap-4 sm:gap-6">
