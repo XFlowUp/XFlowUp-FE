@@ -30,10 +30,11 @@ import { useParams } from 'next/navigation';
 import ServiceNode from './architecture/ServiceNode';
 import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
 import ServiceDialog from './architecture/CreateServiceDialog';
-import { RoomProvider, useMyPresence, useOthers } from '@liveblocks/react';
+import { RoomProvider, useMyPresence, useOthers, useStorage, useMutation } from '@liveblocks/react';
 import { ClientSideSuspense } from '@liveblocks/react';
 import { LiveblocksProvider } from '@liveblocks/react';
 import Cursor from './architecture/Cursor';
+import { LiveList } from '@liveblocks/client';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -122,8 +123,21 @@ function Flow() {
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
 
   const { data, loading } = useAllServices(projectSlug);
+  const nodesStorage = useStorage(root => root.nodes);
+  const updateNodePosition = useMutation(
+    ({ storage }, nodeId: string, position: { x: number; y: number }) => {
+      const nodes = storage.get('nodes');
+      const nodeIndex = nodes.findIndex(node => node.id === nodeId);
+      if (nodeIndex !== -1) {
+        nodes.set(nodeIndex, { id: nodeId, position });
+      } else {
+        nodes.push({ id: nodeId, position });
+      }
+    },
+    []
+  );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(emptyNodes);
+  const [nodes, setNodes, onNodesChangeBase] = useNodesState(emptyNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const flowRef = useRef<HTMLDivElement>(null);
@@ -135,6 +149,40 @@ function Flow() {
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+
+  const saveToHistory = useCallback(() => {
+    if (rfInstance) {
+      const currentState = {
+        nodes: rfInstance.getNodes(),
+        edges: rfInstance.getEdges(),
+      };
+
+      if (
+        historyIndex === -1 ||
+        JSON.stringify(currentState) !== JSON.stringify(history[historyIndex])
+      ) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(currentState);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      }
+    }
+  }, [rfInstance, history, historyIndex]);
+
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      changes.forEach((change: any) => {
+        if (change.type === 'position' && change.dragging === false) {
+          updateNodePosition(change.id, change.position);
+        }
+      });
+      onNodesChangeBase(changes);
+      if (!isDragging) {
+        saveToHistory();
+      }
+    },
+    [onNodesChangeBase, isDragging, saveToHistory, updateNodePosition]
+  );
 
   useEffect(() => {
     if (loading) {
@@ -183,24 +231,22 @@ function Flow() {
     }
   }, [data, loading, setNodes]);
 
-  const saveToHistory = useCallback(() => {
-    if (rfInstance) {
-      const currentState = {
-        nodes: rfInstance.getNodes(),
-        edges: rfInstance.getEdges(),
-      };
+  // Effect to sync with storage changes
+  useEffect(() => {
+    if (!nodesStorage) return;
 
-      if (
-        historyIndex === -1 ||
-        JSON.stringify(currentState) !== JSON.stringify(history[historyIndex])
-      ) {
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(currentState);
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
+    const updatedNodes = nodes.map(node => {
+      const storedNode = nodesStorage.find(n => n.id === node.id);
+      if (storedNode) {
+        return {
+          ...node,
+          position: storedNode.position,
+        };
       }
-    }
-  }, [rfInstance, history, historyIndex]);
+      return node;
+    });
+    setNodes(updatedNodes);
+  }, [nodesStorage, setNodes]);
 
   const handleUndo = useCallback(() => {
     if (historyIndex > 0 && history.length > 1) {
@@ -388,12 +434,7 @@ function Flow() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={changes => {
-            onNodesChange(changes);
-            if (!isDragging) {
-              saveToHistory();
-            }
-          }}
+          onNodesChange={handleNodesChange}
           onEdgesChange={changes => {
             onEdgesChange(changes);
             saveToHistory();
@@ -584,7 +625,11 @@ export default function ArchitectureView({ projectSlug }: ArchitectureViewProps)
         return await response.json();
       }}
     >
-      <RoomProvider id={`project:${projectSlug}`} initialPresence={{ cursor: null }}>
+      <RoomProvider
+        id={`project:${projectSlug}`}
+        initialPresence={{ cursor: null }}
+        initialStorage={{ nodes: new LiveList([]) }}
+      >
         <ClientSideSuspense fallback={<div>Loading…</div>}>
           <ReactFlowProvider>
             <Flow />
