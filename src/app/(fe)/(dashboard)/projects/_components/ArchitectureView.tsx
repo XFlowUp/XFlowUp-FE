@@ -172,7 +172,7 @@ function Flow() {
   const handleNodesChange = useCallback(
     (changes: any) => {
       changes.forEach((change: any) => {
-        if (change.type === 'position' && change.dragging === false) {
+        if (change.type === 'position') {
           updateNodePosition(change.id, change.position);
         }
       });
