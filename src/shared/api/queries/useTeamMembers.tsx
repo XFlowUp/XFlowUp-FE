@@ -12,6 +12,8 @@ query GetTeamMembers($projectSlug: String!) {
           email
           name
           profile_url
+          status
+          permissions
         }
       }
     }

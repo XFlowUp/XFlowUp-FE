@@ -16,8 +16,8 @@ export default function LoginButton() {
   const { loading: isLoading, data } = useUserInfo();
   const { isAuthenticated, user } = useAuthStore();
   const setUser = useAuthStore(state => state.setUser);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {

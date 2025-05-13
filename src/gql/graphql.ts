@@ -550,6 +550,8 @@ export type Mutation = {
   delete_service: DeleteServiceResult;
   /** Edit an environment value */
   edit_environment_value: EditEnvironmentValueResult;
+  /** Remove a team member from a project */
+  remove_team_member: RemoveTeamMemberResult;
   /** Request a deployment request */
   request_deployment: DeploymentRequestResult;
   /** Send an email */
@@ -597,6 +599,11 @@ export type MutationDelete_ServiceArgs = {
 
 export type MutationEdit_Environment_ValueArgs = {
   input: EditEnvironmentValueInput;
+};
+
+export type MutationRemove_Team_MemberArgs = {
+  email: Scalars['String']['input'];
+  project_slug: Scalars['String']['input'];
 };
 
 export type MutationRequest_DeploymentArgs = {
@@ -766,6 +773,25 @@ export type QueryTeam_MembersArgs = {
   project_slug: Scalars['String']['input'];
 };
 
+/** The result of removing a team member */
+export type RemoveTeamMemberResult = RemoveTeamMemberResultError | RemoveTeamMemberResultSuccess;
+
+export type RemoveTeamMemberResultError = {
+  __typename?: 'RemoveTeamMemberResultError';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
+export type RemoveTeamMemberResultSuccess = {
+  __typename?: 'RemoveTeamMemberResultSuccess';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
 export type Repository = {
   __typename?: 'Repository';
   id: Scalars['Float']['output'];
@@ -843,9 +869,18 @@ export type TeamMember = {
   email: Scalars['String']['output'];
   /** The name of the team member */
   name: Scalars['String']['output'];
+  /** The permissions of the team member */
+  permissions: Array<Scalars['Int']['output']>;
   /** The profile URL of the team member */
   profile_url?: Maybe<Scalars['String']['output']>;
+  /** The status of the team member */
+  status: User_In_Team_Status;
 };
+
+export enum User_In_Team_Status {
+  Accepted = 'ACCEPTED',
+  Pending = 'PENDING',
+}
 
 export type UpdateProjectDetailsInput = {
   /** The description of the project */
@@ -1012,6 +1047,18 @@ export type AddTeamMemberMutation = {
   add_team_member:
     | { __typename?: 'AddTeamMemberErrorResult'; status: Status; message: string }
     | { __typename?: 'AddTeamMemberSuccessResult'; email: string; status: Status };
+};
+
+export type RemoveTeamMemberMutationVariables = Exact<{
+  projectSlug: Scalars['String']['input'];
+  email: Scalars['String']['input'];
+}>;
+
+export type RemoveTeamMemberMutation = {
+  __typename?: 'Mutation';
+  remove_team_member:
+    | { __typename?: 'RemoveTeamMemberResultError'; status: Status; message?: string | null }
+    | { __typename?: 'RemoveTeamMemberResultSuccess'; status: Status; message?: string | null };
 };
 
 export type GetAllServicesQueryVariables = Exact<{
@@ -1194,6 +1241,8 @@ export type GetTeamMembersQuery = {
             email: string;
             name: string;
             profile_url?: string | null;
+            status: User_In_Team_Status;
+            permissions: Array<number>;
           }>;
         };
       };
@@ -1947,6 +1996,88 @@ export const AddTeamMemberDocument = {
     },
   ],
 } as unknown as DocumentNode<AddTeamMemberMutation, AddTeamMemberMutationVariables>;
+export const RemoveTeamMemberDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'RemoveTeamMember' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'email' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'remove_team_member' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'project_slug' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'projectSlug' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'email' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'email' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'RemoveTeamMemberResultSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'RemoveTeamMemberResultError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RemoveTeamMemberMutation, RemoveTeamMemberMutationVariables>;
 export const GetAllServicesDocument = {
   kind: 'Document',
   definitions: [
@@ -2699,6 +2830,8 @@ export const GetTeamMembersDocument = {
                                   { kind: 'Field', name: { kind: 'Name', value: 'email' } },
                                   { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                                   { kind: 'Field', name: { kind: 'Name', value: 'profile_url' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'permissions' } },
                                 ],
                               },
                             },

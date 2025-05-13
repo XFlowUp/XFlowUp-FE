@@ -39,9 +39,6 @@ const DELETE_PROJECT = gql(`
 `);
 
 const UPDATE_PROJECT = gql(`
-
-
-
 mutation UpdateProjectDetailsMutation($projectSlug: String!, $input: UpdateProjectDetailsInput!) {
   update_project_details(project_slug: $projectSlug, input: $input) {
     ... on UpdateProjectDetailsResultSuccess {

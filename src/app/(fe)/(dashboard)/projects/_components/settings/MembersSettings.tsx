@@ -4,13 +4,28 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Check, User } from 'lucide-react';
+import { Check, User, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/shared/lib/utils';
 import useTeamMembers from '@/shared/api/queries/useTeamMembers';
-import { useAddTeamMember } from '@/shared/api/mutations/useTeamMembersMutation';
+import {
+  useAddTeamMember,
+  useRemoveTeamMember,
+} from '@/shared/api/mutations/useTeamMembersMutation';
 import { Avatar as UIAvatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LoadingSpinner, LoadingDots } from '@/components/ui/loading-spinner';
+import { LoadingDots } from '@/components/ui/loading-spinner';
+import { User_In_Team_Status } from '@/gql/graphql';
+import { AiOutlineLoading3Quarters } from '@react-icons/all-files/ai/AiOutlineLoading3Quarters';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 enum ProjectPermission {
   OWNER = 1,
@@ -37,6 +52,7 @@ interface Member {
   email: string;
   profile_url?: string | null;
   permissions?: ProjectPermission[];
+  status?: User_In_Team_Status;
 }
 
 interface InviteForm {
@@ -57,23 +73,33 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
+  const [removingEmail, setRemovingEmail] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [refetchLoading, setRefetchLoading] = useState(false);
 
   const {
     data: teamMembersData,
     loading: teamMembersLoading,
     error: teamMembersError,
+    refetch: refetchTeamMembers,
   } = useTeamMembers(projectSlug || '');
 
   const [addTeamMember, { error: addMemberError }] = useAddTeamMember();
-
-  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [removeTeamMember, { loading: removeLoading }] = useRemoveTeamMember();
 
   useEffect(() => {
     if (addMemberError) {
-      setInviteError(addMemberError.message || 'Unknown error occurred');
+      toast.error(`Error inviting member: ${addMemberError.message || 'Unknown error'}`);
       setIsSubmitting(false);
     }
   }, [addMemberError]);
+
+  useEffect(() => {
+    if (teamMembersError) {
+      toast.error(`Error loading team members: ${teamMembersError.message || 'Unknown error'}`);
+    }
+  }, [teamMembersError]);
 
   useEffect(() => {
     if (
@@ -83,7 +109,6 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
       try {
         const memberData = teamMembersData.team_members.team.members.map(member => ({
           ...member,
-          permissions: getRandomPermissions(),
         }));
         setMembers(memberData);
       } catch (error) {
@@ -91,24 +116,6 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
       }
     }
   }, [teamMembersData]);
-
-  const getRandomPermissions = (): ProjectPermission[] => {
-    const allPermissions = Object.values(ProjectPermission).filter(
-      v => !isNaN(Number(v))
-    ) as ProjectPermission[];
-    const numPermissions = Math.floor(Math.random() * 4) + 1;
-    const permissions: ProjectPermission[] = [];
-
-    for (let i = 0; i < numPermissions; i++) {
-      const randomIndex = Math.floor(Math.random() * allPermissions.length);
-      const permission = allPermissions[randomIndex];
-      if (!permissions.includes(permission)) {
-        permissions.push(permission);
-      }
-    }
-
-    return permissions;
-  };
 
   const formatPermissions = (permissions?: ProjectPermission[]): string => {
     if (!permissions || permissions.length === 0) return 'None';
@@ -150,10 +157,9 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      setInviteError(null);
+    setIsSubmitting(true);
 
+    try {
       const response = await addTeamMember({
         variables: {
           projectSlug,
@@ -167,16 +173,17 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
       const result = response.data?.add_team_member;
 
       if (result?.__typename === 'AddTeamMemberSuccessResult') {
-        toast.success(`Invitation sent to ${form.email} successfully!`);
+        toast.success(`Invited ${form.email} to the project`);
 
-        setMembers(prevMembers => [
-          ...prevMembers,
-          {
-            name: 'Pending Member',
-            email: form.email,
-            permissions: form.permissions,
-          },
-        ]);
+        try {
+          // Refresh list of members
+          setRefetchLoading(true);
+          await refetchTeamMembers();
+        } catch (refetchError) {
+          console.error('Error refreshing team members:', refetchError);
+        } finally {
+          setRefetchLoading(false);
+        }
 
         setForm({
           email: '',
@@ -184,21 +191,95 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
         });
       } else if (result?.__typename === 'AddTeamMemberErrorResult') {
         const errorMessage = result.message || 'Unknown error';
-        setInviteError(errorMessage);
-        toast.error(`Failed to invite member: ${errorMessage}`);
+        toast.error(`Error inviting member: ${errorMessage}`);
       }
     } catch (error: any) {
       console.error('Error inviting user:', error);
-      const errorMessage = error.message || 'Unknown error occurred';
-      setInviteError(errorMessage);
-      toast.error(`Failed to send invitation: ${errorMessage}`);
+      const errorMessage = error.message || 'Unknown error';
+      toast.error(`Error inviting member: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const confirmRemove = (member: Member) => {
+    setMemberToDelete(member);
+    setIsAlertOpen(true);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!projectSlug || !memberToDelete) return;
+
+    setIsAlertOpen(false);
+    setRemovingEmail(memberToDelete.email);
+
+    try {
+      const response = await removeTeamMember({
+        variables: {
+          projectSlug,
+          email: memberToDelete.email,
+        },
+      });
+
+      const result = response.data?.remove_team_member;
+
+      if (result?.__typename === 'RemoveTeamMemberResultSuccess') {
+        toast.success(`Removed ${memberToDelete.email} from the project`);
+        try {
+          setRefetchLoading(true);
+          await refetchTeamMembers();
+        } catch (error) {
+          console.error('Error refreshing team members:', error);
+        } finally {
+          setRefetchLoading(false);
+        }
+      } else if (result?.__typename === 'RemoveTeamMemberResultError') {
+        const errorMessage = result.message || 'Unknown error';
+        toast.error(`Error removing member: ${errorMessage}`);
+      }
+    } catch (error: any) {
+      console.error('Error removing user:', error);
+      const errorMessage = error.message || 'Unknown error';
+      toast.error(`Error removing member: ${errorMessage}`);
+    } finally {
+      setRemovingEmail(null);
+      setMemberToDelete(null);
+    }
+  };
+
   return (
     <div className="p-8">
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to remove this member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will remove <span className="font-medium">{memberToDelete?.email}</span>{' '}
+              from the project and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="default"
+                className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+                onClick={handleRemoveMember}
+              >
+                {removingEmail ? (
+                  <>
+                    <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin mr-2" />
+                    <span>Removing...</span>
+                  </>
+                ) : (
+                  'Remove'
+                )}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <h2 className="text-2xl font-semibold mb-6">Invite Member</h2>
 
       <form onSubmit={handleSubmit} className="max-w-[60%]">
@@ -256,6 +337,8 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
                 <div className="max-h-[300px] overflow-auto py-1">
                   {Object.entries(permissionLabels).map(([value, label]) => {
                     const permission = Number(value) as ProjectPermission;
+                    if (permission === ProjectPermission.OWNER) return null;
+
                     const isSelected = form.permissions.includes(permission);
                     return (
                       <div
@@ -282,7 +365,7 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
             <Button type="submit" disabled={!isFormValid || isSubmitting} className="h-9">
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <LoadingSpinner size="sm" color="white" />
+                  <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin" />
                   <span>Inviting...</span>
                 </span>
               ) : (
@@ -291,12 +374,6 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
             </Button>
           </div>
         </div>
-
-        {inviteError && (
-          <div className="mt-4 p-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md text-sm">
-            Error inviting member: {inviteError}
-          </div>
-        )}
 
         {form.permissions.length > 0 && (
           <div className="mt-4">
@@ -313,13 +390,7 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
       <div className="mt-12">
         <h2 className="text-2xl font-semibold mb-6">Project Members</h2>
 
-        {teamMembersError && (
-          <div className="p-4 mb-6 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md">
-            Error loading team members: {teamMembersError.message || 'Unknown error'}
-          </div>
-        )}
-
-        {teamMembersLoading ? (
+        {teamMembersLoading || refetchLoading ? (
           <div className="border rounded-md p-8 max-w-[60%] flex items-center justify-center">
             <LoadingDots size="md" color="primary" text="Loading team members..." />
           </div>
@@ -338,6 +409,12 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
                     </th>
                     <th className="py-3 px-4 text-left font-medium text-gray-600 dark:text-gray-400">
                       Permissions
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-600 dark:text-gray-400">
+                      Status
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium text-gray-600 dark:text-gray-400">
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -366,6 +443,37 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
                         <div className="text-gray-700 dark:text-gray-300">
                           {formatPermissions(member.permissions)}
                         </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            member.status === User_In_Team_Status.Accepted
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                              : member.status === User_In_Team_Status.Pending
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
+                          }`}
+                        >
+                          {member.status || 'unknown'}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        {!member.permissions?.includes(ProjectPermission.OWNER) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            disabled={removingEmail === member.email}
+                            onClick={() => confirmRemove(member)}
+                          >
+                            {removingEmail === member.email ? (
+                              <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin mr-1" />
+                            ) : (
+                              <Trash2 className="h-4 w-4 mr-1" />
+                            )}
+                            Remove
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}
