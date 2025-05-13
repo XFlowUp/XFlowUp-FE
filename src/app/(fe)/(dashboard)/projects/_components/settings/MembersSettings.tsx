@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useAuthStore } from '@/shared/stores/auth';
 
 enum ProjectPermission {
   OWNER = 1,
@@ -87,6 +88,8 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
 
   const [addTeamMember, { error: addMemberError }] = useAddTeamMember();
   const [removeTeamMember, { loading: removeLoading }] = useRemoveTeamMember();
+
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (addMemberError) {
@@ -176,7 +179,6 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
         toast.success(`Invited ${form.email} to the project`);
 
         try {
-          // Refresh list of members
           setRefetchLoading(true);
           await refetchTeamMembers();
         } catch (refetchError) {
@@ -247,23 +249,33 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
     }
   };
 
+  const canManageMembers = () => {
+    const currentUserPermissions = members.find(m => m.email === user?.email)?.permissions || [];
+    return (
+      currentUserPermissions.includes(ProjectPermission.OWNER) ||
+      currentUserPermissions.includes(ProjectPermission.MANAGE_USER)
+    );
+  };
+
   return (
     <div className="p-8">
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-background border border-border dark:bg-gray-900">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to remove this member?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               This action will remove <span className="font-medium">{memberToDelete?.email}</span>{' '}
               from the project and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="dark:bg-gray-800 dark:hover:bg-gray-700">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction asChild>
               <Button
                 variant="default"
-                className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+                className="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
                 onClick={handleRemoveMember}
               >
                 {removingEmail ? (
@@ -458,22 +470,23 @@ export default function MembersSettings({ projectSlug }: MembersSettingsProps) {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        {!member.permissions?.includes(ProjectPermission.OWNER) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            disabled={removingEmail === member.email}
-                            onClick={() => confirmRemove(member)}
-                          >
-                            {removingEmail === member.email ? (
-                              <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin mr-1" />
-                            ) : (
-                              <Trash2 className="h-4 w-4 mr-1" />
-                            )}
-                            Remove
-                          </Button>
-                        )}
+                        {canManageMembers() &&
+                          !member.permissions?.includes(ProjectPermission.OWNER) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              disabled={removingEmail === member.email}
+                              onClick={() => confirmRemove(member)}
+                            >
+                              {removingEmail === member.email ? (
+                                <AiOutlineLoading3Quarters className="h-4 w-4 animate-spin mr-1" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 mr-1" />
+                              )}
+                              Remove
+                            </Button>
+                          )}
                       </td>
                     </tr>
                   ))}

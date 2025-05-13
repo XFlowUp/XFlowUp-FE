@@ -13,9 +13,9 @@ export default function LoginPage() {
   const router = useRouter();
   const { loading: isLoading, data } = useUserInfo();
   const setUser = useAuthStore(state => state.setUser);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [showModal, setShowModal] = React.useState(true);
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
   const [redirected, setRedirected] = React.useState(false);
 
   useEffect(() => {

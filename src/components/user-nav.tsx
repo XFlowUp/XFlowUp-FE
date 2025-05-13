@@ -48,17 +48,17 @@ export function LogoutButton() {
 }
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <div>
       <DropdownMenuItem
         className="px-3 py-2 mt-1 cursor-pointer group"
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
       >
-        {theme === 'dark' ? <SunIcon className="p-0" /> : <MoonIcon className="p-0" />}
+        {resolvedTheme === 'dark' ? <SunIcon className="p-0" /> : <MoonIcon className="p-0" />}
         <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
-          {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          {resolvedTheme === 'dark' ? 'Light Theme' : 'Dark Theme'}
         </span>
       </DropdownMenuItem>
     </div>
