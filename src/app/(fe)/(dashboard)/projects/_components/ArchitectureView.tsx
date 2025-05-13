@@ -30,6 +30,10 @@ import { useParams } from 'next/navigation';
 import ServiceNode from './architecture/ServiceNode';
 import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
 import ServiceDialog from './architecture/CreateServiceDialog';
+import { RoomProvider, useMyPresence, useOthers } from '@liveblocks/react';
+import { ClientSideSuspense } from '@liveblocks/react';
+import { LiveblocksProvider } from '@liveblocks/react';
+import Cursor from './architecture/Cursor';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -78,6 +82,40 @@ const emptyStateNodes: Node[] = [
     draggable: false,
   },
 ];
+
+function CursorManager() {
+  const [{ cursor }, updateMyPresence] = useMyPresence();
+  const others = useOthers();
+
+  const COLORS = [
+    '#E57373',
+    '#9575CD',
+    '#4FC3F7',
+    '#81C784',
+    '#FFF176',
+    '#FF8A65',
+    '#F06292',
+    '#7986CB',
+  ];
+
+  return (
+    <>
+      {others.map(({ connectionId, presence }) => {
+        if (presence.cursor === null) {
+          return null;
+        }
+        return (
+          <Cursor
+            key={`cursor-${connectionId}`}
+            color={COLORS[connectionId % COLORS.length]}
+            x={presence.cursor.x}
+            y={presence.cursor.y}
+          />
+        );
+      })}
+    </>
+  );
+}
 
 function Flow() {
   const params = useParams();
@@ -324,9 +362,28 @@ function Flow() {
     return () => window.removeEventListener('resize', updateMaxHeight);
   }, []);
 
+  const [{ cursor }, updateMyPresence] = useMyPresence();
+
   return (
     <ArchitectureProvider onAddNode={handleAddNode}>
-      <div className="h-full w-full relative overflow-hidden" ref={flowRef}>
+      <div
+        className="h-full w-full relative overflow-hidden"
+        onPointerLeave={() =>
+          updateMyPresence({
+            cursor: null,
+          })
+        }
+        onPointerMove={event => {
+          updateMyPresence({
+            cursor: {
+              x: Math.round(event.clientX),
+              y: Math.round(event.clientY),
+            },
+          });
+        }}
+        ref={flowRef}
+      >
+        <CursorManager />
         <ServiceDetailPanel service={selectedService} onClose={handleCloseServicePanel} />
         <ReactFlow
           nodes={nodes}
@@ -502,10 +559,38 @@ function Flow() {
   );
 }
 
-export default function ArchitectureView() {
+type ArchitectureViewProps = {
+  projectSlug: string;
+};
+
+export default function ArchitectureView({ projectSlug }: ArchitectureViewProps) {
   return (
-    <ReactFlowProvider>
-      <Flow />
-    </ReactFlowProvider>
+    <LiveblocksProvider
+      authEndpoint={async room => {
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+
+        const body = JSON.stringify({
+          projectSlug,
+        });
+
+        const response = await fetch('/api/liveblocks-auth', {
+          method: 'POST',
+          headers,
+          body,
+        });
+
+        return await response.json();
+      }}
+    >
+      <RoomProvider id={`project:${projectSlug}`} initialPresence={{ cursor: null }}>
+        <ClientSideSuspense fallback={<div>Loading…</div>}>
+          <ReactFlowProvider>
+            <Flow />
+          </ReactFlowProvider>
+        </ClientSideSuspense>
+      </RoomProvider>
+    </LiveblocksProvider>
   );
 }

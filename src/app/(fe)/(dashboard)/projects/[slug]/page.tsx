@@ -62,7 +62,7 @@ export default async function ProjectsPage(props: { params: Promise<{ slug: stri
             value="architecture"
             className="h-full p-0 m-0 overflow-hidden data-[state=active]:block"
           >
-            <ArchitectureView />
+            <ArchitectureView projectSlug={params.slug} />
           </TabsContent>
           <TabsContent
             value="observability"
