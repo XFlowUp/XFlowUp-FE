@@ -46,6 +46,8 @@ import { LiveblocksProvider } from '@liveblocks/react';
 import Cursor from '@/components/liveblocks/Cursor';
 import { LiveList, shallow } from '@liveblocks/client';
 import MessagePanel from './MessagePanel';
+import axiosClient from '@/lib/axios';
+import { ENDPOINT } from '@/shared/constants/endpoint';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -706,26 +708,11 @@ export default function ArchitectureView({ projectSlug }: ArchitectureViewProps)
   return (
     <LiveblocksProvider
       authEndpoint={async room => {
-        const token = localStorage.getItem('access_token') ?? localStorage.getItem('access-token');
-        const headers = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        };
-
-        const body = JSON.stringify({
+        const response = await axiosClient.post(ENDPOINT.LIVEBLOCKS_AUTHENTICATE, {
           projectSlug,
         });
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/liveblocks/authenticate`,
-          {
-            method: 'POST',
-            headers,
-            body,
-          }
-        );
-
-        return await response.json();
+        return response.data;
       }}
     >
       <RoomProvider
