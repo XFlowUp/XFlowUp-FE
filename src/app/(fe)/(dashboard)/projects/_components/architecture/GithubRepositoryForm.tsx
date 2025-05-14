@@ -11,6 +11,7 @@ import { useCreateService } from '@/shared/api/mutations/useServiceMutations';
 import { toast } from 'sonner';
 import { ServiceNodeData } from './ServiceNode';
 import { useEnvironment } from '../EnvironmentContext';
+import { formatDistanceToNow } from 'date-fns';
 
 interface GithubRepositoryFormProps {
   repository: any;
@@ -92,8 +93,8 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
           id: result.data.id,
           title: formData.name,
           description: repository.name || formData.name,
-          source: 'GitHub',
-          timeAgo: 'just now',
+          source: result.data.serviceType,
+          timeAgo: formatDistanceToNow(new Date(), { addSuffix: true }),
         };
 
         onSubmit(serviceData);
