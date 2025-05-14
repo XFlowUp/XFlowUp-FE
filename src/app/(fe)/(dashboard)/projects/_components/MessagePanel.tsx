@@ -3,6 +3,7 @@ import { ChevronDown, Send, Paperclip, Smile } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MessageSquareIcon } from '@/components/ui/message-square';
 
 const sampleMessages = [
   {
@@ -57,13 +58,14 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
   const [messages, setMessages] = useState(sampleMessages);
   const panelRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const updateMaxHeight = () => {
       if (panelRef.current) {
         const headerHeight = 64;
-        const topGap = 80;
-        const maxHeight = window.innerHeight - headerHeight - topGap;
+        const bottomGap = 20;
+        const maxHeight = window.innerHeight - headerHeight - bottomGap;
         panelRef.current.style.maxHeight = `${maxHeight}px`;
       }
     };
@@ -76,6 +78,7 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
   useEffect(() => {
     if (showMessages) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      inputRef.current?.focus();
     }
   }, [showMessages, messages]);
 
@@ -102,44 +105,40 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
     }
   };
 
+  const toggleMessages = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.message-panel-header')) {
+      setShowMessages(!showMessages);
+    }
+  };
+
   return (
     <div
       ref={panelRef}
-      className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 w-80 border rounded-t-md shadow-lg transition-all duration-300 ease-in-out ${
+      className={`fixed bottom-0 right-4 w-80 md:w-96 rounded-t-md border border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-800 ${
         showMessages ? 'h-[calc(100vh-144px)]' : 'h-10'
       }`}
       style={{
-        zIndex: 10,
-        transform: showMessages ? 'translateY(0)' : 'translateY(calc(100% - 40px))',
+        zIndex: 50,
       }}
     >
       <div
-        className="px-4 py-1 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-        onClick={() => setShowMessages(!showMessages)}
+        className="flex cursor-pointer items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 message-panel-header"
+        onClick={toggleMessages}
       >
         <div className="flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
+          <MessageSquareIcon size={16} />
           <h3 className="font-medium">Messages</h3>
         </div>
         <ChevronDown
-          className={`h-4 w-4 transition-transform ${showMessages ? 'rotate-0' : 'rotate-180'}`}
+          className={`h-4 w-4 transition-transform ${showMessages ? 'rotate-180' : 'rotate-0'}`}
         />
       </div>
 
-      {showMessages && (
-        <div className="flex flex-col h-[calc(100%-41px)]">
-          <div className="overflow-y-auto p-2 flex-grow">
+      <div className="flex flex-col h-[calc(100%-40px)] overflow-hidden">
+        <div
+          className={`flex flex-col h-full ${showMessages ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        >
+          <div className="overflow-y-auto p-3 flex-grow">
             {messages.map(message => (
               <div
                 key={message.id}
@@ -149,7 +148,7 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
                   className={`flex max-w-[85%] ${message.isMe ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <Avatar className={`h-8 w-8 flex-shrink-0 ${message.isMe ? 'ml-2' : 'mr-2'}`}>
-                    <AvatarImage src={message.avatar} />
+                    <AvatarImage src={message.avatar} alt={message.sender} />
                     <AvatarFallback>{message.sender.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -177,11 +176,12 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-3 border-t border-gray-200 dark:border-gray-700 mt-auto">
-            <div className="flex items-center gap-2">
+          <div className="p-3 border-t border-gray-200 dark:border-gray-700 mt-auto sticky bottom-0 bg-white dark:bg-gray-800">
+            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
               <Input
+                ref={inputRef}
                 type="text"
-                placeholder="Nhập tin nhắn..."
+                placeholder="Type a message..."
                 value={messageText}
                 onChange={e => setMessageText(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -205,7 +205,7 @@ export default function MessagePanel({ projectSlug }: MessagePanelProps) {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
