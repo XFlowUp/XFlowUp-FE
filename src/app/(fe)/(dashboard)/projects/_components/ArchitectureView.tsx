@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { db } from '@/lib/filebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import {
   Background,
   useNodesState,
@@ -14,6 +16,7 @@ import {
   ReactFlowProvider,
   type ReactFlowInstance,
   BackgroundVariant,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Plus, Minus } from 'lucide-react';
@@ -23,17 +26,28 @@ import { ExpandIcon } from '@/components/ui/expand';
 import { UndoIcon } from '@/components/ui/undo';
 import { RedoIcon } from '@/components/ui/redo';
 import { TerminalIcon } from '@/components/ui/terminal';
+import { ActivityIcon } from '@/components/ui/activity';
 import { ArchitectureProvider } from './architecture/ArchitectureContext';
 import useAllServices from '@/shared/api/queries/useAllServices';
 import { useParams } from 'next/navigation';
 import ServiceNode from './architecture/ServiceNode';
 import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
 import ServiceDialog from './architecture/CreateServiceDialog';
-import { RoomProvider, useMyPresence, useOthers } from '@liveblocks/react';
+import {
+  RoomProvider,
+  useMyPresence,
+  useOthers,
+  useStorage,
+  useMutation,
+  useOthersMapped,
+} from '@liveblocks/react';
 import { ClientSideSuspense } from '@liveblocks/react';
 import { LiveblocksProvider } from '@liveblocks/react';
-import Cursor from './architecture/Cursor';
+import Cursor from '@/components/liveblocks/Cursor';
+import { LiveList, shallow } from '@liveblocks/client';
 import MessagePanel from './MessagePanel';
+import axiosClient from '@/lib/axios';
+import { ENDPOINT } from '@/shared/constants/endpoint';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -85,7 +99,15 @@ const emptyStateNodes: Node[] = [
 
 function CursorManager() {
   const [{ cursor }, updateMyPresence] = useMyPresence();
-  const others = useOthers();
+  const rfInstance = useReactFlow();
+
+  const others = useOthersMapped(
+    other => ({
+      cursor: other.presence.cursor,
+      info: other.info,
+    }),
+    shallow
+  );
 
   const COLORS = [
     '#E57373',
@@ -100,16 +122,19 @@ function CursorManager() {
 
   return (
     <>
-      {others.map(({ connectionId, presence }) => {
-        if (presence.cursor === null) {
+      {others.map(([id, other]) => {
+        if (other.cursor == null) {
           return null;
         }
+
         return (
           <Cursor
-            key={`cursor-${connectionId}`}
-            color={COLORS[connectionId % COLORS.length]}
-            x={presence.cursor.x}
-            y={presence.cursor.y}
+            variant="name"
+            name={other.info.name}
+            key={id}
+            color={[COLORS[id % COLORS.length], COLORS[(id + 1) % COLORS.length]]}
+            x={other.cursor.x}
+            y={other.cursor.y}
           />
         );
       })}
@@ -121,21 +146,128 @@ function Flow() {
   const params = useParams();
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
 
-  const { data, loading } = useAllServices(projectSlug);
+  const { data, loading: servicesLoading } = useAllServices(projectSlug);
+  const nodesStorage = useStorage(root => root.nodes);
+  const [isStorageLoading, setIsStorageLoading] = useState(true);
+  const [isFirestoreLoading, setIsFirestoreLoading] = useState(true);
+  const [firestorePositions, setFirestorePositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+  const [isStorageReady, setIsStorageReady] = useState(false);
+  const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(emptyNodes);
+  const updateNodePosition = useMutation(
+    ({ storage }, nodeId: string, position: { x: number; y: number }) => {
+      if (!isStorageReady) {
+        console.warn('Storage not ready yet');
+        return;
+      }
+
+      try {
+        if (!storage) {
+          console.warn('Storage not loaded yet');
+          return;
+        }
+
+        const nodes = storage.get('nodes');
+        if (!nodes) {
+          console.warn('Nodes not initialized in storage');
+          return;
+        }
+
+        const nodeIndex = nodes.findIndex(node => node.id === nodeId);
+        if (nodeIndex !== -1) {
+          nodes.set(nodeIndex, { id: nodeId, position });
+        } else {
+          nodes.push({ id: nodeId, position });
+        }
+
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        setDoc(
+          xyflowRef,
+          {
+            nodes: nodes.toArray(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        ).catch(error => {
+          console.error('Error updating Firestore:', error);
+        });
+      } catch (error) {
+        console.error('Error in updateNodePosition:', error);
+      }
+    },
+    [projectSlug, isStorageReady]
+  );
+
+  const [nodes, setNodes, onNodesChangeBase] = useNodesState(emptyNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Node['data'] | null>(null);
+  const [hasInitialFitView, setHasInitialFitView] = useState(false);
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
+  const saveToHistory = useCallback(() => {
+    if (rfInstance) {
+      const currentState = {
+        nodes: rfInstance.getNodes(),
+        edges: rfInstance.getEdges(),
+      };
+
+      if (
+        historyIndex === -1 ||
+        JSON.stringify(currentState) !== JSON.stringify(history[historyIndex])
+      ) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(currentState);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      }
+    }
+  }, [rfInstance, history, historyIndex]);
+
   useEffect(() => {
-    if (loading) {
+    if (nodesStorage !== undefined) {
+      setIsStorageLoading(false);
+      setIsStorageReady(true);
+    }
+  }, [nodesStorage]);
+
+  useEffect(() => {
+    if (!projectSlug) return;
+
+    const loadFirestorePositions = async () => {
+      try {
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        const docSnap = await getDoc(xyflowRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.nodes) {
+            const positions: Record<string, { x: number; y: number }> = {};
+            data.nodes.forEach((node: { id: string; position: { x: number; y: number } }) => {
+              positions[node.id] = node.position;
+            });
+            setFirestorePositions(positions);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading Firestore positions:', error);
+      } finally {
+        setIsFirestoreLoading(false);
+      }
+    };
+
+    loadFirestorePositions();
+  }, [projectSlug]);
+
+  useEffect(() => {
+    if (servicesLoading || isStorageLoading || isFirestoreLoading) {
       setNodes(loadingSkeletonNodes);
       return;
     }
@@ -157,14 +289,23 @@ function Flow() {
       const centerY = 150;
       const radius = 200;
       const servicesNodes: Node[] = sortedServices.map((service, index) => {
-        const angle = (index / sortedServices.length) * 2 * Math.PI;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
+        const storedPosition = firestorePositions[service.id];
+        let position;
+
+        if (storedPosition) {
+          position = storedPosition;
+        } else {
+          const angle = (index / sortedServices.length) * 2 * Math.PI;
+          position = {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+          };
+        }
 
         return {
           id: service.id,
           type: 'service',
-          position: { x, y },
+          position,
           data: {
             title: service.name,
             description: service.name,
@@ -178,27 +319,82 @@ function Flow() {
       });
 
       setNodes(servicesNodes);
-    }
-  }, [data, loading, setNodes]);
 
-  const saveToHistory = useCallback(() => {
-    if (rfInstance) {
-      const currentState = {
-        nodes: rfInstance.getNodes(),
-        edges: rfInstance.getEdges(),
-      };
-
-      if (
-        historyIndex === -1 ||
-        JSON.stringify(currentState) !== JSON.stringify(history[historyIndex])
-      ) {
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(currentState);
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
+      if (Object.keys(firestorePositions).length === 0) {
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        setDoc(
+          xyflowRef,
+          {
+            nodes: servicesNodes.map(node => ({
+              id: node.id,
+              position: node.position,
+            })),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
       }
     }
-  }, [rfInstance, history, historyIndex]);
+  }, [
+    data,
+    servicesLoading,
+    isStorageLoading,
+    isFirestoreLoading,
+    setNodes,
+    projectSlug,
+    firestorePositions,
+  ]);
+
+  useEffect(() => {
+    if (!nodesStorage || servicesLoading || isStorageLoading || isFirestoreLoading) return;
+
+    const updatedNodes = nodes.map(node => {
+      const storedNode = nodesStorage.find(n => n.id === node.id);
+      if (storedNode) {
+        return {
+          ...node,
+          position: storedNode.position,
+        };
+      }
+      return node;
+    });
+    setNodes(updatedNodes);
+  }, [nodesStorage, setNodes, servicesLoading, isStorageLoading, isFirestoreLoading]);
+
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      if (servicesLoading || isStorageLoading || isFirestoreLoading || !isStorageReady) {
+        setNodes(loadingSkeletonNodes);
+        return;
+      }
+
+      try {
+        changes.forEach((change: any) => {
+          if (change.type === 'position') {
+            updateNodePosition(change.id, change.position);
+          }
+        });
+        onNodesChangeBase(changes);
+        if (!isDragging) {
+          saveToHistory();
+        }
+      } catch (error) {
+        console.error('Error in handleNodesChange:', error);
+        setNodes(loadingSkeletonNodes);
+      }
+    },
+    [
+      onNodesChangeBase,
+      isDragging,
+      saveToHistory,
+      updateNodePosition,
+      servicesLoading,
+      isStorageLoading,
+      isFirestoreLoading,
+      setNodes,
+      isStorageReady,
+    ]
+  );
 
   const handleUndo = useCallback(() => {
     if (historyIndex > 0 && history.length > 1) {
@@ -281,6 +477,44 @@ function Flow() {
     await instance.fitView({ duration: 0, padding: 0.2, minZoom: 1, maxZoom: 1 });
   }, []);
 
+  useEffect(() => {
+    if (
+      !hasInitialFitView &&
+      !servicesLoading &&
+      !isStorageLoading &&
+      !isFirestoreLoading &&
+      isStorageReady &&
+      rfInstance &&
+      nodes.length > 0 &&
+      !nodes.some(node => node.data.isSkeleton)
+    ) {
+      setHasInitialFitView(true);
+
+      setTimeout(() => {
+        rfInstance.fitView({
+          duration: 500,
+          padding: 0.2,
+          minZoom: 0.5,
+          maxZoom: 1,
+        });
+      }, 500);
+    }
+  }, [
+    servicesLoading,
+    isStorageLoading,
+    isFirestoreLoading,
+    isStorageReady,
+    rfInstance,
+    nodes,
+    hasInitialFitView,
+  ]);
+
+  const onMove = useCallback((event: any) => {
+    if (event && event.viewport) {
+      setViewport(event.viewport);
+    }
+  }, []);
+
   const handleAddNode = useCallback(
     (newNode: Node) => {
       setNodes(prevNodes => {
@@ -296,7 +530,7 @@ function Flow() {
 
   const handleNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
-      if (node.data.isEmptyState && !loading) {
+      if (node.data.isEmptyState && !servicesLoading) {
         setIsDialogOpen(true);
         return;
       }
@@ -327,7 +561,7 @@ function Flow() {
         }
       }
     },
-    [loading, rfInstance]
+    [servicesLoading, rfInstance]
   );
 
   const handleCloseServicePanel = useCallback(() => {
@@ -357,10 +591,23 @@ function Flow() {
           })
         }
         onPointerMove={event => {
+          if (!rfInstance) return;
+
+          const bounds = flowRef.current?.getBoundingClientRect();
+          if (!bounds) return;
+
+          const x = event.clientX - bounds.left;
+          const y = event.clientY - bounds.top;
+
+          const position = rfInstance.screenToFlowPosition({
+            x,
+            y,
+          });
+
           updateMyPresence({
             cursor: {
-              x: Math.round(event.clientX),
-              y: Math.round(event.clientY),
+              x: Math.round(position.x),
+              y: Math.round(position.y),
             },
           });
         }}
@@ -371,12 +618,7 @@ function Flow() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={changes => {
-            onNodesChange(changes);
-            if (!isDragging) {
-              saveToHistory();
-            }
-          }}
+          onNodesChange={handleNodesChange}
           onEdgesChange={changes => {
             onEdgesChange(changes);
             saveToHistory();
@@ -390,6 +632,7 @@ function Flow() {
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           onInit={onInit}
+          onMove={onMove}
           minZoom={0.5}
           maxZoom={1.5}
           className="bg-gray-50 dark:bg-gray-900"
@@ -495,24 +738,18 @@ export default function ArchitectureView({ projectSlug }: ArchitectureViewProps)
   return (
     <LiveblocksProvider
       authEndpoint={async room => {
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-
-        const body = JSON.stringify({
+        const response = await axiosClient.post(ENDPOINT.LIVEBLOCKS_AUTHENTICATE, {
           projectSlug,
         });
 
-        const response = await fetch('/api/liveblocks-auth', {
-          method: 'POST',
-          headers,
-          body,
-        });
-
-        return await response.json();
+        return response.data;
       }}
     >
-      <RoomProvider id={`project:${projectSlug}`} initialPresence={{ cursor: null }}>
+      <RoomProvider
+        id={`project:${projectSlug}`}
+        initialPresence={{ cursor: null }}
+        initialStorage={{ nodes: new LiveList([]) }}
+      >
         <ClientSideSuspense fallback={<div>Loading…</div>}>
           <ReactFlowProvider>
             <Flow />

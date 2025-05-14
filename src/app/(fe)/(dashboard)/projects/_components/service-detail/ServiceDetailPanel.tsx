@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Service_Type_Enum } from '@/gql/graphql';
-import { formatDistanceToNow } from 'date-fns';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -163,10 +162,6 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
     }
   };
 
-  const formatDeploymentTime = (date: Date) => {
-    return formatDistanceToNow(date, { addSuffix: true });
-  };
-
   const panelVariants = {
     hidden: {
       x: '100%',
@@ -288,10 +283,12 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
               source={service?.source}
               status={mapApiStatusToUiStatus(deployment.status)}
               environment={deployment.branch || 'Unknown'}
-              timeInfo={formatDeploymentTime(new Date(deployment.createdAt))}
+              timeInfo={deployment.createdAt}
               commitHash={deployment.commitHash}
               branch={deployment.branch}
               avatar={deployment.commiterAvatar}
+              renderSourceIcon={renderSourceIcon}
+              serviceName={service?.title || 'Unknown'}
             />
           </motion.div>
         ))}

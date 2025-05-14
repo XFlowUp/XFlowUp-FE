@@ -11,6 +11,7 @@ import { useCreateService } from '@/shared/api/mutations/useServiceMutations';
 import { toast } from 'sonner';
 import { ServiceNodeData } from './ServiceNode';
 import { useEnvironment } from '../EnvironmentContext';
+import { formatDistanceToNow } from 'date-fns';
 
 interface DatabaseFormProps {
   onSubmit: (serviceData: ServiceNodeData) => void;
@@ -86,7 +87,7 @@ export default function DatabaseForm({ onSubmit, database }: DatabaseFormProps) 
           title: formData.name,
           description: formData.description,
           source: Service_Type_Enum.Database,
-          timeAgo: 'just now',
+          timeAgo: formatDistanceToNow(new Date(), { addSuffix: true }),
         };
 
         onSubmit(serviceData);
