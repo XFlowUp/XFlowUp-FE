@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { db } from '@/lib/filebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import {
   Background,
   useNodesState,
@@ -122,8 +124,14 @@ function Flow() {
   const params = useParams();
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
 
-  const { data, loading } = useAllServices(projectSlug);
+  const { data, loading: servicesLoading } = useAllServices(projectSlug);
   const nodesStorage = useStorage(root => root.nodes);
+  const [isStorageLoading, setIsStorageLoading] = useState(true);
+  const [isFirestoreLoading, setIsFirestoreLoading] = useState(true);
+  const [firestorePositions, setFirestorePositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+
   const updateNodePosition = useMutation(
     ({ storage }, nodeId: string, position: { x: number; y: number }) => {
       const nodes = storage.get('nodes');
@@ -133,8 +141,18 @@ function Flow() {
       } else {
         nodes.push({ id: nodeId, position });
       }
+
+      const xyflowRef = doc(db, 'xyflow', projectSlug);
+      setDoc(
+        xyflowRef,
+        {
+          nodes: nodes.toArray(),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
     },
-    []
+    [projectSlug]
   );
 
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(emptyNodes);
@@ -169,23 +187,45 @@ function Flow() {
     }
   }, [rfInstance, history, historyIndex]);
 
-  const handleNodesChange = useCallback(
-    (changes: any) => {
-      changes.forEach((change: any) => {
-        if (change.type === 'position') {
-          updateNodePosition(change.id, change.position);
-        }
-      });
-      onNodesChangeBase(changes);
-      if (!isDragging) {
-        saveToHistory();
-      }
-    },
-    [onNodesChangeBase, isDragging, saveToHistory, updateNodePosition]
-  );
-
+  // Effect to handle storage loading state
   useEffect(() => {
-    if (loading) {
+    if (nodesStorage !== undefined) {
+      setIsStorageLoading(false);
+    }
+  }, [nodesStorage]);
+
+  // Effect to load Firestore positions
+  useEffect(() => {
+    if (!projectSlug) return;
+
+    const loadFirestorePositions = async () => {
+      try {
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        const docSnap = await getDoc(xyflowRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.nodes) {
+            const positions: Record<string, { x: number; y: number }> = {};
+            data.nodes.forEach((node: { id: string; position: { x: number; y: number } }) => {
+              positions[node.id] = node.position;
+            });
+            setFirestorePositions(positions);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading Firestore positions:', error);
+      } finally {
+        setIsFirestoreLoading(false);
+      }
+    };
+
+    loadFirestorePositions();
+  }, [projectSlug]);
+
+  // Effect to handle initial data loading and position setting
+  useEffect(() => {
+    if (servicesLoading || isStorageLoading || isFirestoreLoading) {
       setNodes(loadingSkeletonNodes);
       return;
     }
@@ -207,14 +247,24 @@ function Flow() {
       const centerY = 150;
       const radius = 200;
       const servicesNodes: Node[] = sortedServices.map((service, index) => {
-        const angle = (index / sortedServices.length) * 2 * Math.PI;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
+        // Use Firestore position if available, otherwise calculate default position
+        const storedPosition = firestorePositions[service.id];
+        let position;
+
+        if (storedPosition) {
+          position = storedPosition;
+        } else {
+          const angle = (index / sortedServices.length) * 2 * Math.PI;
+          position = {
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+          };
+        }
 
         return {
           id: service.id,
           type: 'service',
-          position: { x, y },
+          position,
           data: {
             title: service.name,
             description: service.name,
@@ -228,12 +278,35 @@ function Flow() {
       });
 
       setNodes(servicesNodes);
-    }
-  }, [data, loading, setNodes]);
 
-  // Effect to sync with storage changes
+      // Save initial positions to Firestore if they don't exist
+      if (Object.keys(firestorePositions).length === 0) {
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        setDoc(
+          xyflowRef,
+          {
+            nodes: servicesNodes.map(node => ({
+              id: node.id,
+              position: node.position,
+            })),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      }
+    }
+  }, [
+    data,
+    servicesLoading,
+    isStorageLoading,
+    isFirestoreLoading,
+    setNodes,
+    projectSlug,
+    firestorePositions,
+  ]);
+
   useEffect(() => {
-    if (!nodesStorage) return;
+    if (!nodesStorage || servicesLoading || isStorageLoading || isFirestoreLoading) return;
 
     const updatedNodes = nodes.map(node => {
       const storedNode = nodesStorage.find(n => n.id === node.id);
@@ -246,7 +319,32 @@ function Flow() {
       return node;
     });
     setNodes(updatedNodes);
-  }, [nodesStorage, setNodes]);
+  }, [nodesStorage, setNodes, servicesLoading, isStorageLoading, isFirestoreLoading]);
+
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      if (servicesLoading || isStorageLoading || isFirestoreLoading) return;
+
+      changes.forEach((change: any) => {
+        if (change.type === 'position') {
+          updateNodePosition(change.id, change.position);
+        }
+      });
+      onNodesChangeBase(changes);
+      if (!isDragging) {
+        saveToHistory();
+      }
+    },
+    [
+      onNodesChangeBase,
+      isDragging,
+      saveToHistory,
+      updateNodePosition,
+      servicesLoading,
+      isStorageLoading,
+      isFirestoreLoading,
+    ]
+  );
 
   const handleUndo = useCallback(() => {
     if (historyIndex > 0 && history.length > 1) {
@@ -344,7 +442,7 @@ function Flow() {
 
   const handleNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
-      if (node.data.isEmptyState && !loading) {
+      if (node.data.isEmptyState && !servicesLoading) {
         setIsDialogOpen(true);
         return;
       }
@@ -375,7 +473,7 @@ function Flow() {
         }
       }
     },
-    [loading, rfInstance]
+    [servicesLoading, rfInstance]
   );
 
   const handleCloseServicePanel = useCallback(() => {
