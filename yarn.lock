@@ -1545,19 +1545,19 @@
 
 "@liveblocks/client@2.24.2", "@liveblocks/client@^2.24.2":
   version "2.24.2"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-2.24.2.tgz#051c5a893dfe4dbc74b35e60a693c0ae38b739ba"
+  resolved "https://registry.npmjs.org/@liveblocks/client/-/client-2.24.2.tgz"
   integrity sha512-WlF501lO4vrD7N1sUTBsq3AXR+1rXRvAr2e5XAVhewvYkbDpJvBeti3jWp5S2LxufWMNNoFPzJSRR71FNaThNQ==
   dependencies:
     "@liveblocks/core" "2.24.2"
 
 "@liveblocks/core@2.24.2":
   version "2.24.2"
-  resolved "https://registry.yarnpkg.com/@liveblocks/core/-/core-2.24.2.tgz#54d60ac5fe9628392895464089d8f3a13da0e58e"
+  resolved "https://registry.npmjs.org/@liveblocks/core/-/core-2.24.2.tgz"
   integrity sha512-RMWFGHEtwHnJDBZRdbx9gysWwWt7lDbKmX1bia2sOqff3DgELRXmrDzEMDj37X+fARdP9jGb+goWCdKHIcrTfQ==
 
 "@liveblocks/node@^2.24.2":
   version "2.24.2"
-  resolved "https://registry.yarnpkg.com/@liveblocks/node/-/node-2.24.2.tgz#ab5cf7bb9d737cb0146d8a5ef5c19cc92262fb48"
+  resolved "https://registry.npmjs.org/@liveblocks/node/-/node-2.24.2.tgz"
   integrity sha512-P7X8iLFnWZdVw8pbmrSYEtbmiv9bfE0f7dIew2t3U8JxMJ2QoiArFLbGOtEbkLq+zQRT7Culi4sjWZMKTuJECA==
   dependencies:
     "@liveblocks/core" "2.24.2"
@@ -1567,7 +1567,7 @@
 
 "@liveblocks/react@^2.24.2":
   version "2.24.2"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-2.24.2.tgz#85f41e47fa82c9e9eb1b2ef734ef17ffc600f7df"
+  resolved "https://registry.npmjs.org/@liveblocks/react/-/react-2.24.2.tgz"
   integrity sha512-q2BvhlrNd8lcaEwLtGAVWrN8oCgEFWve4MTNRgNBS4T/rnpHP9rKUdsnSf6D/tsSJr7ugLhXxuDgbbWXUufZQQ==
   dependencies:
     "@liveblocks/client" "2.24.2"
@@ -2319,7 +2319,7 @@
 
 "@stablelib/base64@^1.0.1":
   version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@stablelib/base64/-/base64-1.0.1.tgz#bdfc1c6d3a62d7a3b7bbc65b6cce1bb4561641be"
+  resolved "https://registry.npmjs.org/@stablelib/base64/-/base64-1.0.1.tgz"
   integrity sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==
 
 "@swc/counter@0.1.3":
@@ -4121,7 +4121,7 @@ fast-levenshtein@^2.0.6:
 
 fast-sha256@^1.3.0:
   version "1.3.0"
-  resolved "https://registry.yarnpkg.com/fast-sha256/-/fast-sha256-1.3.0.tgz#7916ba2054eeb255982608cccd0f6660c79b7ae6"
+  resolved "https://registry.npmjs.org/fast-sha256/-/fast-sha256-1.3.0.tgz"
   integrity sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==
 
 fast-xml-parser@^4.4.1:
@@ -4317,13 +4317,13 @@ formdata-polyfill@^4.0.10:
   dependencies:
     fetch-blob "^3.1.2"
 
-framer-motion@^12.4.10:
-  version "12.6.5"
-  resolved "https://registry.npmjs.org/framer-motion/-/framer-motion-12.6.5.tgz"
-  integrity sha512-MKvnWov0paNjvRJuIy6x418w23tFqRfS6CXHhZrCiSEpXVlo/F+usr8v4/3G6O0u7CpsaO1qop+v4Ip7PRCBqQ==
+framer-motion@^12.11.1:
+  version "12.11.1"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-12.11.1.tgz#1df97a38b07f1526eb0206621d5afad7334b8da8"
+  integrity sha512-k8SlrjoDesLTBklizQ2BSW7Pb99cHDoZe51Tff9ZjmWHQ/N5DLly949veBnwNfeH4d0E/h02RKuul/6D+5u9Bg==
   dependencies:
-    motion-dom "^12.6.5"
-    motion-utils "^12.6.5"
+    motion-dom "^12.11.0"
+    motion-utils "^12.9.4"
     tslib "^2.4.0"
 
 function-bind@^1.1.2:
@@ -5539,24 +5539,24 @@ minimist@^1.2.0, minimist@^1.2.6:
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
 
-motion-dom@^12.6.5:
-  version "12.6.5"
-  resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.6.5.tgz"
-  integrity sha512-jpM9TQLXzYMWMJ7Ec7sAj0iis8oIuu6WvjI3yNKJLdrZyrsI/b2cRInDVL8dCl683zQQq19DpL9cSMP+k8T1NA==
+motion-dom@^12.11.0:
+  version "12.11.0"
+  resolved "https://registry.yarnpkg.com/motion-dom/-/motion-dom-12.11.0.tgz#64b6244b513761fa0ec439546ec1db449f4ea685"
+  integrity sha512-CItkGYJenn5ZsbzTX0D9mE0UWdjdd9r535FrxEXhzR8Kwa9I2dLr1uhEJgQPWbgaIJ6i0sNFnf2T9NvVDWQVBw==
   dependencies:
-    motion-utils "^12.6.5"
+    motion-utils "^12.9.4"
 
-motion-utils@^12.6.5:
-  version "12.6.5"
-  resolved "https://registry.npmjs.org/motion-utils/-/motion-utils-12.6.5.tgz"
-  integrity sha512-IsOeKsOF+FWBhxQEDFBO6ZYC8/jlidmVbbLpe9/lXSA9j9kzGIMUuIBx2SZY+0reAS0DjZZ1i7dJp4NHrjocPw==
+motion-utils@^12.9.4:
+  version "12.9.4"
+  resolved "https://registry.yarnpkg.com/motion-utils/-/motion-utils-12.9.4.tgz#9d5a45a19971e20059911526d7af2217c5158fa2"
+  integrity sha512-BW3I65zeM76CMsfh3kHid9ansEJk9Qvl+K5cu4DVHKGsI52n76OJ4z2CUJUV+Mn3uEP9k1JJA3tClG0ggSrRcg==
 
-motion@^12.4.10:
-  version "12.4.10"
-  resolved "https://registry.npmjs.org/motion/-/motion-12.4.10.tgz"
-  integrity sha512-AM21Lyfn7ZHO+nBuHJEA2REFgS3kUM83CLZnzM0ZY1/sVeKGkCtV4LF4O/YsQXyZ9mrUrrnTaUkKquS4eaIYjg==
+motion@^12.11.1:
+  version "12.11.1"
+  resolved "https://registry.yarnpkg.com/motion/-/motion-12.11.1.tgz#2014249f741e1815a093604a1df93e91afb8865d"
+  integrity sha512-H0IVz0WlISEdIHC7DfA7YLZrYt5oMCged5jdkKj6HpHEqJc83ZjkNGum/NLBNR2O26harFhL+JVBYQdZo2d+Ow==
   dependencies:
-    framer-motion "^12.4.10"
+    framer-motion "^12.11.1"
     tslib "^2.4.0"
 
 ms@^2.1.1, ms@^2.1.3:
