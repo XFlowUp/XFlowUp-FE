@@ -536,21 +536,6 @@ function Flow() {
     }
   }, [rfInstance]);
 
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      if (activityPanelRef.current) {
-        const headerHeight = 64;
-        const topGap = 80;
-        const maxHeight = window.innerHeight - headerHeight - topGap;
-        activityPanelRef.current.style.maxHeight = `${maxHeight}px`;
-      }
-    };
-
-    updateMaxHeight();
-    window.addEventListener('resize', updateMaxHeight);
-    return () => window.removeEventListener('resize', updateMaxHeight);
-  }, []);
-
   const [{ cursor }, updateMyPresence] = useMyPresence();
 
   return (
