@@ -205,6 +205,7 @@ function Flow() {
   const [isDragging, setIsDragging] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Node['data'] | null>(null);
+  const [hasInitialFitView, setHasInitialFitView] = useState(false);
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -228,7 +229,6 @@ function Flow() {
     }
   }, [rfInstance, history, historyIndex]);
 
-  // Effect to handle storage loading state
   useEffect(() => {
     if (nodesStorage !== undefined) {
       setIsStorageLoading(false);
@@ -236,7 +236,6 @@ function Flow() {
     }
   }, [nodesStorage]);
 
-  // Effect to load Firestore positions
   useEffect(() => {
     if (!projectSlug) return;
 
@@ -265,7 +264,6 @@ function Flow() {
     loadFirestorePositions();
   }, [projectSlug]);
 
-  // Effect to handle initial data loading and position setting
   useEffect(() => {
     if (servicesLoading || isStorageLoading || isFirestoreLoading) {
       setNodes(loadingSkeletonNodes);
@@ -289,7 +287,6 @@ function Flow() {
       const centerY = 150;
       const radius = 200;
       const servicesNodes: Node[] = sortedServices.map((service, index) => {
-        // Use Firestore position if available, otherwise calculate default position
         const storedPosition = firestorePositions[service.id];
         let position;
 
@@ -321,7 +318,6 @@ function Flow() {
 
       setNodes(servicesNodes);
 
-      // Save initial positions to Firestore if they don't exist
       if (Object.keys(firestorePositions).length === 0) {
         const xyflowRef = doc(db, 'xyflow', projectSlug);
         setDoc(
@@ -479,8 +475,42 @@ function Flow() {
     await instance.fitView({ duration: 0, padding: 0.2, minZoom: 1, maxZoom: 1 });
   }, []);
 
+  useEffect(() => {
+    if (
+      !hasInitialFitView &&
+      !servicesLoading &&
+      !isStorageLoading &&
+      !isFirestoreLoading &&
+      isStorageReady &&
+      rfInstance &&
+      nodes.length > 0 &&
+      !nodes.some(node => node.data.isSkeleton)
+    ) {
+      setHasInitialFitView(true);
+
+      setTimeout(() => {
+        rfInstance.fitView({
+          duration: 500,
+          padding: 0.2,
+          minZoom: 0.5,
+          maxZoom: 1,
+        });
+      }, 500);
+    }
+  }, [
+    servicesLoading,
+    isStorageLoading,
+    isFirestoreLoading,
+    isStorageReady,
+    rfInstance,
+    nodes,
+    hasInitialFitView,
+  ]);
+
   const onMove = useCallback((event: any) => {
-    setViewport(event.viewport);
+    if (event && event.viewport) {
+      setViewport(event.viewport);
+    }
   }, []);
 
   const handleAddNode = useCallback(
