@@ -16,14 +16,13 @@ import {
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Plus, Minus, ChevronDown, CheckCircle } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ExpandIcon } from '@/components/ui/expand';
 import { UndoIcon } from '@/components/ui/undo';
 import { RedoIcon } from '@/components/ui/redo';
 import { TerminalIcon } from '@/components/ui/terminal';
-import { ActivityIcon } from '@/components/ui/activity';
 import { ArchitectureProvider } from './architecture/ArchitectureContext';
 import useAllServices from '@/shared/api/queries/useAllServices';
 import { useParams } from 'next/navigation';
@@ -34,6 +33,7 @@ import { RoomProvider, useMyPresence, useOthers } from '@liveblocks/react';
 import { ClientSideSuspense } from '@liveblocks/react';
 import { LiveblocksProvider } from '@liveblocks/react';
 import Cursor from './architecture/Cursor';
+import MessagePanel from './MessagePanel';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
@@ -127,9 +127,7 @@ function Flow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const flowRef = useRef<HTMLDivElement>(null);
-  const activityPanelRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [showActivity, setShowActivity] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Node['data'] | null>(null);
 
@@ -347,21 +345,6 @@ function Flow() {
     }
   }, [rfInstance]);
 
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      if (activityPanelRef.current) {
-        const headerHeight = 64;
-        const topGap = 80;
-        const maxHeight = window.innerHeight - headerHeight - topGap;
-        activityPanelRef.current.style.maxHeight = `${maxHeight}px`;
-      }
-    };
-
-    updateMaxHeight();
-    window.addEventListener('resize', updateMaxHeight);
-    return () => window.removeEventListener('resize', updateMaxHeight);
-  }, []);
-
   const [{ cursor }, updateMyPresence] = useMyPresence();
 
   return (
@@ -496,62 +479,7 @@ function Flow() {
           </Panel>
 
           <Panel position="bottom-right" style={{ marginBottom: 0 }}>
-            <div
-              ref={activityPanelRef}
-              className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 w-80 border rounded-t-md shadow-lg transition-all duration-300 ease-in-out ${
-                showActivity ? 'h-[calc(100vh-144px)]' : 'h-10'
-              }`}
-              style={{
-                zIndex: 10,
-                transform: showActivity ? 'translateY(0)' : 'translateY(calc(100% - 40px))',
-              }}
-            >
-              <div
-                className="px-4 py-1 border-b flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                onClick={() => setShowActivity(!showActivity)}
-              >
-                <div className="flex items-center gap-2">
-                  <ActivityIcon size={16} />
-                  <h3 className="font-medium">Activity</h3>
-                </div>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showActivity ? 'rotate-0' : 'rotate-180'}`}
-                />
-              </div>
-
-              <div className="h-[1px] bg-gray-200 dark:bg-gray-700 w-full"></div>
-
-              <div className="overflow-y-auto h-[calc(100%-41px)]">
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="px-4 py-3 flex items-start gap-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 cursor-pointer"
-                  >
-                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0" />
-                    <div>
-                      <div className="text-sm font-semibold line-clamp-2 text-ellipsis text-gray-800 dark:text-gray-200">
-                        call-server
-                      </div>
-                      <div className="text-sm text-green-600 dark:text-green-500">
-                        Deployment successful
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {i < 2 ? `${i + 4} hours ago` : `${i + 1} days ago`}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="p-4 flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-                  >
-                    Fetch More
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <MessagePanel projectSlug={projectSlug} />
           </Panel>
         </ReactFlow>
       </div>
