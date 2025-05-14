@@ -33,11 +33,18 @@ import { useParams } from 'next/navigation';
 import ServiceNode from './architecture/ServiceNode';
 import ServiceDetailPanel from './service-detail/ServiceDetailPanel';
 import ServiceDialog from './architecture/CreateServiceDialog';
-import { RoomProvider, useMyPresence, useOthers, useStorage, useMutation } from '@liveblocks/react';
+import {
+  RoomProvider,
+  useMyPresence,
+  useOthers,
+  useStorage,
+  useMutation,
+  useOthersMapped,
+} from '@liveblocks/react';
 import { ClientSideSuspense } from '@liveblocks/react';
 import { LiveblocksProvider } from '@liveblocks/react';
-import Cursor from './architecture/Cursor';
-import { LiveList } from '@liveblocks/client';
+import Cursor from '@/components/liveblocks/Cursor';
+import { LiveList, shallow } from '@liveblocks/client';
 import MessagePanel from './MessagePanel';
 
 const nodeTypes: NodeTypes = {
@@ -90,8 +97,15 @@ const emptyStateNodes: Node[] = [
 
 function CursorManager() {
   const [{ cursor }, updateMyPresence] = useMyPresence();
-  const others = useOthers();
   const rfInstance = useReactFlow();
+
+  const others = useOthersMapped(
+    other => ({
+      cursor: other.presence.cursor,
+      info: other.info,
+    }),
+    shallow
+  );
 
   const COLORS = [
     '#E57373',
@@ -106,22 +120,19 @@ function CursorManager() {
 
   return (
     <>
-      {others.map(({ connectionId, presence }) => {
-        if (presence.cursor === null) {
+      {others.map(([id, other]) => {
+        if (other.cursor == null) {
           return null;
         }
 
-        const position = rfInstance.flowToScreenPosition({
-          x: presence.cursor.x,
-          y: presence.cursor.y,
-        });
-
         return (
           <Cursor
-            key={`cursor-${connectionId}`}
-            color={COLORS[connectionId % COLORS.length]}
-            x={position.x}
-            y={position.y}
+            variant="name"
+            name={other.info.name}
+            key={id}
+            color={[COLORS[id % COLORS.length], COLORS[(id + 1) % COLORS.length]]}
+            x={other.cursor.x}
+            y={other.cursor.y}
           />
         );
       })}
@@ -695,19 +706,24 @@ export default function ArchitectureView({ projectSlug }: ArchitectureViewProps)
   return (
     <LiveblocksProvider
       authEndpoint={async room => {
+        const token = localStorage.getItem('access_token') ?? localStorage.getItem('access-token');
         const headers = {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         };
 
         const body = JSON.stringify({
           projectSlug,
         });
 
-        const response = await fetch('/api/liveblocks-auth', {
-          method: 'POST',
-          headers,
-          body,
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/liveblocks/authenticate`,
+          {
+            method: 'POST',
+            headers,
+            body,
+          }
+        );
 
         return await response.json();
       }}
