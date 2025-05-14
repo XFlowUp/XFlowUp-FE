@@ -16,6 +16,7 @@ import {
   ReactFlowProvider,
   type ReactFlowInstance,
   BackgroundVariant,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Plus, Minus, ChevronDown, CheckCircle } from 'lucide-react';
@@ -89,6 +90,7 @@ const emptyStateNodes: Node[] = [
 function CursorManager() {
   const [{ cursor }, updateMyPresence] = useMyPresence();
   const others = useOthers();
+  const rfInstance = useReactFlow();
 
   const COLORS = [
     '#E57373',
@@ -107,12 +109,18 @@ function CursorManager() {
         if (presence.cursor === null) {
           return null;
         }
+
+        const position = rfInstance.flowToScreenPosition({
+          x: presence.cursor.x,
+          y: presence.cursor.y,
+        });
+
         return (
           <Cursor
             key={`cursor-${connectionId}`}
             color={COLORS[connectionId % COLORS.length]}
-            x={presence.cursor.x}
-            y={presence.cursor.y}
+            x={position.x}
+            y={position.y}
           />
         );
       })}
@@ -132,6 +140,7 @@ function Flow() {
     Record<string, { x: number; y: number }>
   >({});
   const [isStorageReady, setIsStorageReady] = useState(false);
+  const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
 
   const updateNodePosition = useMutation(
     ({ storage }, nodeId: string, position: { x: number; y: number }) => {
@@ -460,6 +469,10 @@ function Flow() {
     await instance.fitView({ duration: 0, padding: 0.2, minZoom: 1, maxZoom: 1 });
   }, []);
 
+  const onMove = useCallback((event: any) => {
+    setViewport(event.viewport);
+  }, []);
+
   const handleAddNode = useCallback(
     (newNode: Node) => {
       setNodes(prevNodes => {
@@ -551,10 +564,23 @@ function Flow() {
           })
         }
         onPointerMove={event => {
+          if (!rfInstance) return;
+
+          const bounds = flowRef.current?.getBoundingClientRect();
+          if (!bounds) return;
+
+          const x = event.clientX - bounds.left;
+          const y = event.clientY - bounds.top;
+
+          const position = rfInstance.screenToFlowPosition({
+            x,
+            y,
+          });
+
           updateMyPresence({
             cursor: {
-              x: Math.round(event.clientX),
-              y: Math.round(event.clientY),
+              x: Math.round(position.x),
+              y: Math.round(position.y),
             },
           });
         }}
@@ -579,6 +605,7 @@ function Flow() {
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           onInit={onInit}
+          onMove={onMove}
           minZoom={0.5}
           maxZoom={1.5}
           className="bg-gray-50 dark:bg-gray-900"
