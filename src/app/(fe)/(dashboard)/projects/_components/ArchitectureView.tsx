@@ -131,28 +131,50 @@ function Flow() {
   const [firestorePositions, setFirestorePositions] = useState<
     Record<string, { x: number; y: number }>
   >({});
+  const [isStorageReady, setIsStorageReady] = useState(false);
 
   const updateNodePosition = useMutation(
     ({ storage }, nodeId: string, position: { x: number; y: number }) => {
-      const nodes = storage.get('nodes');
-      const nodeIndex = nodes.findIndex(node => node.id === nodeId);
-      if (nodeIndex !== -1) {
-        nodes.set(nodeIndex, { id: nodeId, position });
-      } else {
-        nodes.push({ id: nodeId, position });
+      if (!isStorageReady) {
+        console.warn('Storage not ready yet');
+        return;
       }
 
-      const xyflowRef = doc(db, 'xyflow', projectSlug);
-      setDoc(
-        xyflowRef,
-        {
-          nodes: nodes.toArray(),
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
+      try {
+        if (!storage) {
+          console.warn('Storage not loaded yet');
+          return;
+        }
+
+        const nodes = storage.get('nodes');
+        if (!nodes) {
+          console.warn('Nodes not initialized in storage');
+          return;
+        }
+
+        const nodeIndex = nodes.findIndex(node => node.id === nodeId);
+        if (nodeIndex !== -1) {
+          nodes.set(nodeIndex, { id: nodeId, position });
+        } else {
+          nodes.push({ id: nodeId, position });
+        }
+
+        const xyflowRef = doc(db, 'xyflow', projectSlug);
+        setDoc(
+          xyflowRef,
+          {
+            nodes: nodes.toArray(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        ).catch(error => {
+          console.error('Error updating Firestore:', error);
+        });
+      } catch (error) {
+        console.error('Error in updateNodePosition:', error);
+      }
     },
-    [projectSlug]
+    [projectSlug, isStorageReady]
   );
 
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(emptyNodes);
@@ -191,6 +213,7 @@ function Flow() {
   useEffect(() => {
     if (nodesStorage !== undefined) {
       setIsStorageLoading(false);
+      setIsStorageReady(true);
     }
   }, [nodesStorage]);
 
@@ -323,16 +346,24 @@ function Flow() {
 
   const handleNodesChange = useCallback(
     (changes: any) => {
-      if (servicesLoading || isStorageLoading || isFirestoreLoading) return;
+      if (servicesLoading || isStorageLoading || isFirestoreLoading || !isStorageReady) {
+        setNodes(loadingSkeletonNodes);
+        return;
+      }
 
-      changes.forEach((change: any) => {
-        if (change.type === 'position') {
-          updateNodePosition(change.id, change.position);
+      try {
+        changes.forEach((change: any) => {
+          if (change.type === 'position') {
+            updateNodePosition(change.id, change.position);
+          }
+        });
+        onNodesChangeBase(changes);
+        if (!isDragging) {
+          saveToHistory();
         }
-      });
-      onNodesChangeBase(changes);
-      if (!isDragging) {
-        saveToHistory();
+      } catch (error) {
+        console.error('Error in handleNodesChange:', error);
+        setNodes(loadingSkeletonNodes);
       }
     },
     [
@@ -343,6 +374,8 @@ function Flow() {
       servicesLoading,
       isStorageLoading,
       isFirestoreLoading,
+      setNodes,
+      isStorageReady,
     ]
   );
 
