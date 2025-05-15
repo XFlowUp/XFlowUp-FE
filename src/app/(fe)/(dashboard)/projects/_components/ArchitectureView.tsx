@@ -722,7 +722,7 @@ function Flow() {
           </Panel>
 
           <Panel position="bottom-right" style={{ marginBottom: 0 }}>
-            <MessagePanel projectSlug={projectSlug} />
+            <MessagePanel />
           </Panel>
         </ReactFlow>
       </div>
