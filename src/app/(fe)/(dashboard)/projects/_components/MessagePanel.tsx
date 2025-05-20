@@ -57,9 +57,9 @@ const formatDate = (date: Date) => {
   yesterday.setDate(yesterday.getDate() - 1);
 
   if (isSameDay(date, today)) {
-    return 'Hôm nay';
+    return 'Today';
   } else if (isSameDay(date, yesterday)) {
-    return 'Hôm qua';
+    return 'Yesterday';
   } else {
     return date.toLocaleDateString('vi-VN', {
       day: '2-digit',

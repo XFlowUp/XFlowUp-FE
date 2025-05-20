@@ -146,7 +146,7 @@ function Flow() {
   const params = useParams();
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
 
-  const { data, loading: servicesLoading } = useAllServices(projectSlug);
+  const { data, loading: servicesLoading, refetch: refetchServices } = useAllServices(projectSlug);
   const nodesStorage = useStorage(root => root.nodes);
   const [isStorageLoading, setIsStorageLoading] = useState(true);
   const [isFirestoreLoading, setIsFirestoreLoading] = useState(true);
@@ -579,6 +579,14 @@ function Flow() {
     }
   }, [rfInstance]);
 
+  const handleServiceDeleted = useCallback(() => {
+    // Close the service panel
+    handleCloseServicePanel();
+
+    // Refetch all services to update the list
+    refetchServices();
+  }, [handleCloseServicePanel, refetchServices]);
+
   const [{ cursor }, updateMyPresence] = useMyPresence();
 
   return (
@@ -614,7 +622,11 @@ function Flow() {
         ref={flowRef}
       >
         <CursorManager />
-        <ServiceDetailPanel service={selectedService} onClose={handleCloseServicePanel} />
+        <ServiceDetailPanel
+          service={selectedService}
+          onClose={handleCloseServicePanel}
+          onServiceDeleted={handleServiceDeleted}
+        />
         <ReactFlow
           nodes={nodes}
           edges={edges}

@@ -22,6 +22,22 @@ export type Scalars = {
   DateTime: { input: any; output: any };
 };
 
+export type AcceptJoinTeamError = {
+  __typename?: 'AcceptJoinTeamError';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the response */
+  status: Status;
+};
+
+export type AcceptJoinTeamResult = AcceptJoinTeamError | AcceptJoinTeamSuccess;
+
+export type AcceptJoinTeamSuccess = {
+  __typename?: 'AcceptJoinTeamSuccess';
+  /** The status of the response */
+  status: Status;
+};
+
 export type AddEnvironmentValueInput = {
   /** The key of the environment value */
   key: Scalars['String']['input'];
@@ -473,6 +489,8 @@ export type GetProjectDetailsResultSuccess = {
   status: Status;
 };
 
+export type GetProjectPermissionsResult = ProjectPermissionError | ProjectPermissionSuccess;
+
 export type GetRepositoryErrorResult = {
   __typename?: 'GetRepositoryErrorResult';
   /** The error message */
@@ -488,6 +506,37 @@ export type GetRepositorySuccessResult = {
   /** The repositories */
   data: Array<RepositoryObject>;
   /** The status of the response */
+  status: Status;
+};
+
+/** Service settings */
+export type GetServiceSettings = {
+  __typename?: 'GetServiceSettings';
+  /** Domain of the service */
+  domain?: Maybe<Scalars['String']['output']>;
+  /** Port of the service */
+  port: Scalars['String']['output'];
+  /** Use AI review */
+  use_ai_review: Scalars['Boolean']['output'];
+};
+
+export type GetServiceSettingsErrorResult = {
+  __typename?: 'GetServiceSettingsErrorResult';
+  /** Error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** Status of the response */
+  status: Status;
+};
+
+export type GetServiceSettingsResult =
+  | GetServiceSettingsErrorResult
+  | GetServiceSettingsSuccessResult;
+
+export type GetServiceSettingsSuccessResult = {
+  __typename?: 'GetServiceSettingsSuccessResult';
+  /** Service settings */
+  data: GetServiceSettings;
+  /** Status of the response */
   status: Status;
 };
 
@@ -534,6 +583,8 @@ export type MailVariables = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Accept a join team request */
+  accept_join_team: AcceptJoinTeamResult;
   /** Add an environment to a project */
   add_environment: AddEnvironmentsResult;
   /** Add a team member to a project */
@@ -560,8 +611,14 @@ export type Mutation = {
   send_email_with_template: MailResponse;
   testQueue: Scalars['Boolean']['output'];
   topup: CreatePaymentResult;
+  /** Update service settings */
+  updateServiceSettings: UpdateServiceSettingsResult;
   /** Update the details of a project */
   update_project_details: UpdateProjectDetailsResult;
+};
+
+export type MutationAccept_Join_TeamArgs = {
+  project_slug: Scalars['String']['input'];
 };
 
 export type MutationAdd_EnvironmentArgs = {
@@ -635,6 +692,13 @@ export type MutationTopupArgs = {
   data: CreatePaymentInput;
 };
 
+export type MutationUpdateServiceSettingsArgs = {
+  domain: Scalars['String']['input'];
+  port: Scalars['String']['input'];
+  service_id: Scalars['Float']['input'];
+  use_ai_review: Scalars['Boolean']['input'];
+};
+
 export type MutationUpdate_Project_DetailsArgs = {
   input: UpdateProjectDetailsInput;
   project_slug: Scalars['String']['input'];
@@ -688,6 +752,24 @@ export type ProjectError = {
   result: Status;
 };
 
+export type ProjectPermissionError = {
+  __typename?: 'ProjectPermissionError';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the response */
+  status: Status;
+};
+
+export type ProjectPermissionSuccess = {
+  __typename?: 'ProjectPermissionSuccess';
+  /** The permissions of the project */
+  permissions: Array<Scalars['Int']['output']>;
+  /** The status of the response */
+  status: Status;
+  /** The status of the user in the project */
+  user_status: User_In_Team_Status;
+};
+
 export type ProjectResult = ProjectError | ProjectSuccess;
 
 /** The success response of the project */
@@ -710,12 +792,16 @@ export type Query = {
   environment_values: GetEnvironmentValuesResult;
   /** Get all environments in a project */
   environments: GetEnvironmentsResult;
+  /** Get service settings */
+  getServiceSettings: GetServiceSettingsResult;
   /** Get all services for a project */
   get_all_services: GetAllServicesResult;
   /** Get all database services for creating new service */
   get_database_services: GetDatabaseServiceResult;
   /** Get the details of a project */
   get_project_details: GetProjectDetailsResult;
+  /** Get the permissions of a project */
+  get_project_permissions: GetProjectPermissionsResult;
   /** Get all repositories for creating new service */
   get_repositories: GetRepositoryResult;
   repositories: Array<Repository>;
@@ -750,11 +836,19 @@ export type QueryEnvironmentsArgs = {
   project_slug: Scalars['String']['input'];
 };
 
+export type QueryGetServiceSettingsArgs = {
+  service_id: Scalars['Float']['input'];
+};
+
 export type QueryGet_All_ServicesArgs = {
   project_slug: Scalars['String']['input'];
 };
 
 export type QueryGet_Project_DetailsArgs = {
+  project_slug: Scalars['String']['input'];
+};
+
+export type QueryGet_Project_PermissionsArgs = {
   project_slug: Scalars['String']['input'];
 };
 
@@ -907,6 +1001,22 @@ export type UpdateProjectDetailsResultSuccess = {
   status: Status;
 };
 
+export type UpdateServiceSettingsErrorResult = {
+  __typename?: 'UpdateServiceSettingsErrorResult';
+  message: Scalars['String']['output'];
+  /** Status of the response */
+  status: Status;
+};
+
+export type UpdateServiceSettingsResult =
+  | UpdateServiceSettingsErrorResult
+  | UpdateServiceSettingsSuccessResult;
+
+export type UpdateServiceSettingsSuccessResult = {
+  __typename?: 'UpdateServiceSettingsSuccessResult';
+  status: Status;
+};
+
 export type UserInfo = {
   __typename?: 'UserInfo';
   /** The email of the user */
@@ -915,6 +1025,20 @@ export type UserInfo = {
   name: Scalars['String']['output'];
   /** The avatar URL of the user */
   profile_pic_url?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpdateServiceSettingsMutationVariables = Exact<{
+  serviceId: Scalars['Float']['input'];
+  port: Scalars['String']['input'];
+  useAiReview: Scalars['Boolean']['input'];
+  domain: Scalars['String']['input'];
+}>;
+
+export type UpdateServiceSettingsMutation = {
+  __typename?: 'Mutation';
+  updateServiceSettings:
+    | { __typename?: 'UpdateServiceSettingsErrorResult'; status: Status; message: string }
+    | { __typename?: 'UpdateServiceSettingsSuccessResult'; status: Status };
 };
 
 export type CreateEnvironmentMutationVariables = Exact<{
@@ -1121,6 +1245,26 @@ export type GetDeploymentsHistoryQuery = {
       };
 };
 
+export type GetServiceSettingsQueryVariables = Exact<{
+  serviceId: Scalars['Float']['input'];
+}>;
+
+export type GetServiceSettingsQuery = {
+  __typename?: 'Query';
+  getServiceSettings:
+    | { __typename?: 'GetServiceSettingsErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetServiceSettingsSuccessResult';
+        status: Status;
+        data: {
+          __typename?: 'GetServiceSettings';
+          port: string;
+          use_ai_review: boolean;
+          domain?: string | null;
+        };
+      };
+};
+
 export type GetEnvironmentValuesQueryVariables = Exact<{
   input: GetEnvironmentValuesInput;
 }>;
@@ -1260,6 +1404,111 @@ export type GetUserInfoQueryQuery = {
   };
 };
 
+export const UpdateServiceSettingsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateServiceSettings' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'port' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'useAiReview' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Boolean' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'domain' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateServiceSettings' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'port' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'port' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'use_ai_review' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'useAiReview' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'domain' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'domain' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateServiceSettingsSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateServiceSettingsErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateServiceSettingsMutation, UpdateServiceSettingsMutationVariables>;
 export const CreateEnvironmentDocument = {
   kind: 'Document',
   definitions: [
@@ -2338,6 +2587,86 @@ export const GetDeploymentsHistoryDocument = {
     },
   ],
 } as unknown as DocumentNode<GetDeploymentsHistoryQuery, GetDeploymentsHistoryQueryVariables>;
+export const GetServiceSettingsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetServiceSettings' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getServiceSettings' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetServiceSettingsSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'port' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'use_ai_review' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetServiceSettingsErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetServiceSettingsQuery, GetServiceSettingsQueryVariables>;
 export const GetEnvironmentValuesDocument = {
   kind: 'Document',
   definitions: [

@@ -23,9 +23,10 @@ import SettingsSection from './SettingsSection';
 interface ServiceDetailPanelProps {
   service: Record<string, any> | null;
   onClose: () => void;
+  onServiceDeleted?: () => void;
 }
 
-const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
+const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetailPanelProps) => {
   const params = useParams();
   const projectSlug = typeof params.slug === 'string' ? params.slug : '';
   const serviceId = service?.id ? parseFloat(service.id as string) : 0;
@@ -343,8 +344,8 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
               </TabsList>
             </div>
 
-            <div className="px-6 md:px-12 py-6 flex-grow overflow-hidden">
-              <TabsContent value="deployments" className="h-full flex flex-col ">
+            <div className="flex-grow overflow-hidden">
+              <TabsContent value="deployments" className="h-full flex flex-col px-6 md:px-12 py-6">
                 <div className="flex gap-x-2 items-center text-sm mb-4 flex-shrink-0">
                   <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />{' '}
                   <span>xflowup.quanganh.me</span>
@@ -354,16 +355,21 @@ const ServiceDetailPanel = ({ service, onClose }: ServiceDetailPanelProps) => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="variables" className="space-y-4">
+              <TabsContent value="variables" className="space-y-4 px-6 md:px-12 py-6">
                 <VariablesSection />
               </TabsContent>
 
-              <TabsContent value="metrics" className="space-y-4">
+              <TabsContent value="metrics" className="space-y-4 px-6 md:px-12 py-6">
                 <MetricsSection />
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-4">
-                <SettingsSection serviceName={service.title} />
+              <TabsContent value="settings" className="h-full flex">
+                <SettingsSection
+                  serviceId={serviceId}
+                  serviceName={service?.title || ''}
+                  projectSlug={projectSlug}
+                  onServiceDeleted={onServiceDeleted || onClose}
+                />
               </TabsContent>
             </div>
           </Tabs>
