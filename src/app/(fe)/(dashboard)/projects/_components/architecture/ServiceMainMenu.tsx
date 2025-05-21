@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ChevronRightIcon } from '@/components/ui/chevron-right';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 interface ServiceMainMenuProps {
   onSelectGithub: () => void;
@@ -11,6 +12,30 @@ interface ServiceMainMenuProps {
 }
 
 type AnimationItemId = 'search' | 'divider' | 'github' | 'database';
+
+interface IconProps {
+  size?: number;
+  className?: string;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: (props: IconProps) => React.ReactNode;
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'github',
+    label: 'Deploy from Github repo',
+    icon: (props: IconProps) => <IoLogoGithub {...props} />,
+  },
+  {
+    id: 'database',
+    label: 'Deploy Database',
+    icon: (props: IconProps) => <Database {...props} />,
+  },
+];
 
 export default function ServiceMainMenu({
   onSelectGithub,
@@ -22,6 +47,7 @@ export default function ServiceMainMenu({
     github: false,
     database: false,
   });
+  const [searchValue, setSearchValue] = useState('');
 
   const handleItemObserver = useCallback((id: AnimationItemId, inView: boolean) => {
     if (inView) {
@@ -29,30 +55,49 @@ export default function ServiceMainMenu({
     }
   }, []);
 
+  const handleSearch = useCallback((value: string) => {
+    setSearchValue(value.toLowerCase());
+  }, []);
+
+  // Filter menu items based on search value
+  const filteredMenuItems = MENU_ITEMS.filter(
+    item => searchValue === '' || item.label.toLowerCase().includes(searchValue)
+  );
+
+  const handleMenuItemClick = useCallback(
+    (id: string) => {
+      if (id === 'github') {
+        onSelectGithub();
+      } else if (id === 'database') {
+        onSelectDatabase();
+      }
+    },
+    [onSelectGithub, onSelectDatabase]
+  );
+
   return (
     <>
-      <SearchInput onObserve={handleItemObserver} isVisible={visibleItems.search} />
+      <SearchInput
+        onObserve={handleItemObserver}
+        isVisible={visibleItems.search}
+        value={searchValue}
+        onChange={handleSearch}
+      />
 
       <Divider onObserve={handleItemObserver} isVisible={visibleItems.divider} />
 
       <div className="p-3 overflow-y-auto">
-        <MenuItem
-          id="github"
-          icon={<IoLogoGithub size={20} className="text-gray-900 dark:text-white flex-shrink-0" />}
-          label="Deploy from Github repo"
-          onClick={onSelectGithub}
-          onObserve={handleItemObserver}
-          isVisible={visibleItems.github}
-        />
-
-        <MenuItem
-          id="database"
-          icon={<Database size={20} className="text-gray-900 dark:text-white flex-shrink-0" />}
-          label="Deploy Database"
-          onClick={onSelectDatabase}
-          onObserve={handleItemObserver}
-          isVisible={visibleItems.database}
-        />
+        {filteredMenuItems.map(item => (
+          <MenuItem
+            key={item.id}
+            id={item.id as AnimationItemId}
+            icon={<item.icon size={20} className="text-gray-900 dark:text-white flex-shrink-0" />}
+            label={item.label}
+            onClick={() => handleMenuItemClick(item.id)}
+            onObserve={handleItemObserver}
+            isVisible={visibleItems[item.id as AnimationItemId]}
+          />
+        ))}
       </div>
     </>
   );
@@ -61,9 +106,13 @@ export default function ServiceMainMenu({
 function SearchInput({
   onObserve,
   isVisible,
+  value,
+  onChange,
 }: {
   onObserve: (id: AnimationItemId, inView: boolean) => void;
   isVisible: boolean;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -95,6 +144,8 @@ function SearchInput({
           placeholder="What can we help with?"
           className="text-base px-6 py-4 h-auto min-h-[50px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex items-center flex-shrink-0"
           style={{ fontSize: '16px', backgroundColor: 'transparent' }}
+          value={value}
+          onChange={e => onChange(e.target.value)}
         />
       </motion.div>
     </div>

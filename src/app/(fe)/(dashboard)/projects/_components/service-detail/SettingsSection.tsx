@@ -1,9 +1,8 @@
 'use client';
 
 import { useRef } from 'react';
-import { Code, Network, FileCode, Flame, Building, Rocket, Brain } from 'lucide-react';
+import { Code, Network, Flame, Building, Rocket, Brain } from 'lucide-react';
 
-// Import components from separate files
 import { VerticalTimeline } from './components/VerticalTimeline';
 import { TimelineItem } from './components/TimelineItem';
 import { SideNavigation } from './components/SideNavigation';
@@ -21,7 +20,6 @@ interface SettingsSectionProps {
   onServiceDeleted?: () => void;
 }
 
-// Main Page Component
 export default function SettingsSection({
   serviceId,
   serviceName,
@@ -50,6 +48,8 @@ export default function SettingsSection({
     }
   };
 
+  const numericServiceId = typeof serviceId === 'string' ? parseInt(serviceId, 10) : serviceId;
+
   return (
     <div className="w-full h-full text-foreground dark:text-gray-300 flex relative">
       <div className="w-full overflow-y-auto pt-6 pl-12 pr-48">
@@ -63,7 +63,7 @@ export default function SettingsSection({
             icon={<Network className="h-4 w-4" />}
             title="Networking"
           >
-            <NetworkingSection />
+            <NetworkingSection serviceId={numericServiceId} />
           </TimelineItem>
 
           <TimelineItem ref={buildRef} icon={<Building className="h-4 w-4" />} title="Build">
@@ -75,7 +75,7 @@ export default function SettingsSection({
           </TimelineItem>
 
           <TimelineItem ref={aiRef} icon={<Brain className="h-4 w-4" />} title="AI Commit Review">
-            <ConfigSection />
+            <ConfigSection serviceId={numericServiceId} />
           </TimelineItem>
 
           <TimelineItem

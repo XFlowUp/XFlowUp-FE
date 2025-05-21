@@ -8,10 +8,18 @@ import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { useParams } from 'next/navigation';
 import { Service_Type_Enum, CreateNewServiceInput } from '@/gql/graphql';
 import { useCreateService } from '@/shared/api/mutations/useServiceMutations';
+import { useGetRepositoryBranches } from '@/shared/api/queries/useRepositories';
 import { toast } from 'sonner';
 import { ServiceNodeData } from './ServiceNode';
 import { useEnvironment } from '../EnvironmentContext';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface GithubRepositoryFormProps {
   repository: any;
@@ -27,11 +35,16 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    branch: 'main',
+    branch: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createService] = useCreateService({} as CreateNewServiceInput);
+
+  const { data: branchesData, loading: branchesLoading } = useGetRepositoryBranches({
+    owner: repository?.owner?.login || '',
+    repo: repository?.name || '',
+  });
 
   useEffect(() => {
     if (repository && repository.name) {
@@ -42,11 +55,33 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
     }
   }, [repository]);
 
+  const branches =
+    branchesData?.get_branches.__typename === 'GetBranchesSuccessResult'
+      ? branchesData.get_branches.data
+      : [];
+
+  useEffect(() => {
+    if (branches && branches.length > 0 && !formData.branch) {
+      const defaultBranch = branches.find(b => b === 'main' || b === 'master') || branches[0];
+      setFormData(prev => ({
+        ...prev,
+        branch: defaultBranch,
+      }));
+    }
+  }, [branches, formData.branch]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleBranchChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      branch: value,
     }));
   };
 
@@ -170,15 +205,37 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
 
             <div className="space-y-2">
               <Label htmlFor="branch">Branch</Label>
-              <Input
-                id="branch"
-                name="branch"
-                value={formData.branch}
-                onChange={handleChange}
-                placeholder="main"
-                className="h-10 dark:border-gray-600 dark:focus:border-blue-500"
-                required
-              />
+              {branchesLoading ? (
+                <div className="flex items-center h-10 px-3 rounded-md border border-gray-300 dark:border-gray-600">
+                  <div className="h-4 w-4 border-2 border-t-transparent border-gray-500 rounded-full animate-spin mr-2"></div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Loading branches...
+                  </span>
+                </div>
+              ) : branches.length > 0 ? (
+                <Select value={formData.branch} onValueChange={handleBranchChange}>
+                  <SelectTrigger className="w-full h-10 dark:border-gray-600 dark:focus:border-blue-500">
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(branch => (
+                      <SelectItem key={branch} value={branch}>
+                        {branch}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="branch"
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  placeholder="main"
+                  className="h-10 dark:border-gray-600 dark:focus:border-blue-500"
+                  required
+                />
+              )}
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Branch to be used for service deployment
               </p>
@@ -188,7 +245,7 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                disabled={isSubmitting || envLoading}
+                disabled={isSubmitting || envLoading || branchesLoading}
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">

@@ -82,6 +82,20 @@ const formatFileSize = (bytes: number) => {
   else return (bytes / 1048576).toFixed(1) + ' MB';
 };
 
+const getMessageRounding = (text: string) => {
+  if (!text) return 'rounded-lg';
+
+  if (!text.includes('\n') && text.length < 35) {
+    return 'rounded-full';
+  }
+
+  if (text.length < 100) {
+    return 'rounded-2xl';
+  }
+
+  return 'rounded-lg';
+};
+
 export default function MessagePanel() {
   const [showMessages, setShowMessages] = useState(false);
   const [messageText, setMessageText] = useState('');
@@ -531,7 +545,7 @@ export default function MessagePanel() {
 
                           {message.text && (
                             <div
-                              className={`rounded-lg px-3 py-2 transition-opacity duration-300 break-words ${
+                              className={`${getMessageRounding(message.text)} px-3 py-2 transition-opacity duration-300 break-words ${
                                 isMe
                                   ? 'bg-blue-500 text-white'
                                   : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'

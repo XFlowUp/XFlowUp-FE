@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Loader } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useDeleteService } from '@/shared/api/mutations/useServiceMutations';
@@ -48,11 +48,9 @@ export const DangerSection: React.FC<DangerSectionProps> = ({
 
       if (data?.delete_service.__typename === 'DeleteServiceResultSuccess') {
         toast.success('Service deleted successfully');
-        // Close the service detail panel first by calling the callback
         if (onServiceDeleted) {
           onServiceDeleted();
         }
-        // Then redirect to projects page after successful deletion
         setTimeout(() => {
           router.push(`/projects/${projectSlug}`);
         }, 1000);

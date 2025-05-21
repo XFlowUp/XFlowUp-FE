@@ -4,12 +4,18 @@ import { Input } from '@/components/ui/input';
 import { ChevronRightIcon } from '@/components/ui/chevron-right';
 import useRepositories from '@/shared/api/queries/useRepositories';
 import { motion } from 'motion/react';
+import { Settings } from 'lucide-react';
+import CONFIG from '@/shared/config';
 
 interface GithubRepositoryListProps {
   onSelectRepository?: (repo: any) => void;
+  onBackToMainMenu?: () => void;
 }
 
-export default function GithubRepositoryList({ onSelectRepository }: GithubRepositoryListProps) {
+export default function GithubRepositoryList({
+  onSelectRepository,
+  onBackToMainMenu,
+}: GithubRepositoryListProps) {
   const [page, setPage] = useState(1);
   const [repos, setRepos] = useState<any[]>([]);
   const [hasMoreRepos, setHasMoreRepos] = useState(true);
@@ -132,6 +138,22 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
     };
   }, []);
 
+  const handleConfigureGithubApp = () => {
+    const width = 800;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    window.open(
+      `${CONFIG.API_URL}/auth/github/app/install`,
+      '_blank',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    if (onBackToMainMenu) {
+      onBackToMainMenu();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <motion.div
@@ -176,13 +198,23 @@ export default function GithubRepositoryList({ onSelectRepository }: GithubRepos
           </>
         ) : !loading ? (
           <motion.div
-            className="flex flex-col items-center justify-center h-40 text-gray-500"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
+            className="flex justify-between items-center px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md cursor-pointer transition-colors duration-150"
+            onClick={handleConfigureGithubApp}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
+            whileTap={{ scale: 0.98 }}
           >
-            <IoLogoGithub size={36} className="mb-2" />
-            <p>No repositories found</p>
+            <div className="flex items-center gap-2">
+              <Settings size={20} className="text-gray-900 dark:text-white flex-shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-gray-700 dark:text-white" style={{ fontSize: '16px' }}>
+                  Configure GitHub App
+                </span>
+              </div>
+            </div>
+            <ChevronRightIcon size={20} className="text-gray-500" />
           </motion.div>
         ) : null}
 

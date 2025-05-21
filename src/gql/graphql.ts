@@ -404,6 +404,24 @@ export type GetAllServicesSuccessResult = {
   status: Status;
 };
 
+export type GetBranchesErrorResult = {
+  __typename?: 'GetBranchesErrorResult';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the response */
+  status: Status;
+};
+
+export type GetBranchesResult = GetBranchesErrorResult | GetBranchesSuccessResult;
+
+export type GetBranchesSuccessResult = {
+  __typename?: 'GetBranchesSuccessResult';
+  /** The branches */
+  data: Array<Scalars['String']['output']>;
+  /** The status of the response */
+  status: Status;
+};
+
 /** The error response for getting database services */
 export type GetDatabaseServiceError = {
   __typename?: 'GetDatabaseServiceError';
@@ -796,6 +814,8 @@ export type Query = {
   getServiceSettings: GetServiceSettingsResult;
   /** Get all services for a project */
   get_all_services: GetAllServicesResult;
+  /** Get branches of a repository */
+  get_branches: GetBranchesResult;
   /** Get all database services for creating new service */
   get_database_services: GetDatabaseServiceResult;
   /** Get the details of a project */
@@ -805,6 +825,8 @@ export type Query = {
   /** Get all repositories for creating new service */
   get_repositories: GetRepositoryResult;
   repositories: Array<Repository>;
+  /** Search repositories */
+  search_repositories: SearchRepositoryResult;
   /** Get the team members of a project */
   team_members: GetTeamResult;
   /** Get the user info */
@@ -844,6 +866,11 @@ export type QueryGet_All_ServicesArgs = {
   project_slug: Scalars['String']['input'];
 };
 
+export type QueryGet_BranchesArgs = {
+  owner: Scalars['String']['input'];
+  repo: Scalars['String']['input'];
+};
+
 export type QueryGet_Project_DetailsArgs = {
   project_slug: Scalars['String']['input'];
 };
@@ -861,6 +888,14 @@ export type QueryGet_RepositoriesArgs = {
 
 export type QueryRepositoriesArgs = {
   username: Scalars['String']['input'];
+};
+
+export type QuerySearch_RepositoriesArgs = {
+  keyword: Scalars['String']['input'];
+  page?: InputMaybe<Scalars['Int']['input']>;
+  per_page?: InputMaybe<Scalars['Int']['input']>;
+  sortBy?: InputMaybe<GithubRepositorySortBy>;
+  sortDirection?: InputMaybe<GithubRepositorySortDirection>;
 };
 
 export type QueryTeam_MembersArgs = {
@@ -921,6 +956,26 @@ export enum Service_Type_Enum {
   Functions = 'FUNCTIONS',
   GithubRepo = 'GITHUB_REPO',
 }
+
+export type SearchRepositoryErrorResult = {
+  __typename?: 'SearchRepositoryErrorResult';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the response */
+  status: Status;
+};
+
+export type SearchRepositoryResult = SearchRepositoryErrorResult | SearchRepositorySuccessResult;
+
+export type SearchRepositorySuccessResult = {
+  __typename?: 'SearchRepositorySuccessResult';
+  /** The repositories */
+  data: Array<RepositoryObject>;
+  /** The status of the response */
+  status: Status;
+  /** The total count of the repositories */
+  total_count: Scalars['Int']['output'];
+};
 
 /** Service type */
 export type Service = {
@@ -1364,6 +1419,49 @@ export type GetRepositoriesQuery = {
           owner: { __typename?: 'Owner'; id: number; login: string; avatar_url: string };
         }>;
       };
+};
+
+export type SearchRepositoriesQueryVariables = Exact<{
+  keyword: Scalars['String']['input'];
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  sortBy?: InputMaybe<GithubRepositorySortBy>;
+  sortDirection?: InputMaybe<GithubRepositorySortDirection>;
+}>;
+
+export type SearchRepositoriesQuery = {
+  __typename?: 'Query';
+  search_repositories:
+    | { __typename?: 'SearchRepositoryErrorResult'; status: Status; message?: string | null }
+    | {
+        __typename?: 'SearchRepositorySuccessResult';
+        status: Status;
+        total_count: number;
+        data: Array<{
+          __typename?: 'RepositoryObject';
+          id: number;
+          name: string;
+          description?: string | null;
+          url: string;
+          git_url: string;
+          is_private: boolean;
+          created_at?: string | null;
+          updated_at?: string | null;
+          owner: { __typename?: 'Owner'; id: number; login: string; avatar_url: string };
+        }>;
+      };
+};
+
+export type GetBranchesQueryVariables = Exact<{
+  owner: Scalars['String']['input'];
+  repo: Scalars['String']['input'];
+}>;
+
+export type GetBranchesQuery = {
+  __typename?: 'Query';
+  get_branches:
+    | { __typename?: 'GetBranchesErrorResult'; status: Status; message?: string | null }
+    | { __typename?: 'GetBranchesSuccessResult'; status: Status; data: Array<string> };
 };
 
 export type GetTeamMembersQueryVariables = Exact<{
@@ -3100,6 +3198,229 @@ export const GetRepositoriesDocument = {
     },
   ],
 } as unknown as DocumentNode<GetRepositoriesQuery, GetRepositoriesQueryVariables>;
+export const SearchRepositoriesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchRepositories' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'keyword' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'sortBy' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'GithubRepositorySortBy' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'sortDirection' } },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'GithubRepositorySortDirection' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'search_repositories' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'keyword' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'keyword' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'per_page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'perPage' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'sortBy' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'sortBy' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'sortDirection' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'sortDirection' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'SearchRepositorySuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'data' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'owner' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'login' } },
+                                  { kind: 'Field', name: { kind: 'Name', value: 'avatar_url' } },
+                                ],
+                              },
+                            },
+                            { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'git_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'is_private' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'created_at' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'updated_at' } },
+                          ],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total_count' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'SearchRepositoryErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SearchRepositoriesQuery, SearchRepositoriesQueryVariables>;
+export const GetBranchesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetBranches' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'owner' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'repo' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_branches' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'owner' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'owner' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'repo' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'repo' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetBranchesSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'data' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetBranchesErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetBranchesQuery, GetBranchesQueryVariables>;
 export const GetTeamMembersDocument = {
   kind: 'Document',
   definitions: [

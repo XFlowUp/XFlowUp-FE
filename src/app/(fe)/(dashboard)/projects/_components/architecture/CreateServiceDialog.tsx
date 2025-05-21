@@ -203,7 +203,10 @@ export default function ServiceDialog({ isOpen, onOpenChange }: ServiceDialogPro
                 exit={{ x: '-100%', opacity: 0 }}
                 transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
               >
-                <GithubRepositoryList onSelectRepository={handleSelectGithubRepository} />
+                <GithubRepositoryList
+                  onSelectRepository={handleSelectGithubRepository}
+                  onBackToMainMenu={handleBackToMainMenu}
+                />
               </motion.div>
             )}
 
