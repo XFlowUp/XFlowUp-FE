@@ -37,7 +37,7 @@ const EnvironmentsDropdown = ({ onNewEnvironmentClick }: EnvironmentsDropdownPro
   }, [error]);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 gap-1 text-base">
           {envLoading ? (

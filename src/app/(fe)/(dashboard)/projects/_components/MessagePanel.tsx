@@ -85,7 +85,7 @@ const formatFileSize = (bytes: number) => {
 const getMessageRounding = (text: string) => {
   if (!text) return 'rounded-lg';
 
-  if (!text.includes('\n') && text.length < 35) {
+  if (!text.includes('\n') && text.length < 25) {
     return 'rounded-full';
   }
 

@@ -150,27 +150,27 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-4 overflow-y-auto flex-grow">
-        <motion.div
-          className="mb-4 flex items-center gap-2"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <IoLogoGithub size={24} className="text-gray-900 dark:text-white" />
-          <div className="text-base font-medium">{repository.name}</div>
-          <span
-            className={`text-xs px-1.5 py-0.5 rounded-full ${
-              repository.is_private
-                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-            }`}
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="p-4 overflow-y-auto flex-grow">
+          <motion.div
+            className="mb-4 flex items-center gap-2"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            {repository.is_private ? 'Private' : 'Public'}
-          </span>
-        </motion.div>
+            <IoLogoGithub size={24} className="text-gray-900 dark:text-white" />
+            <div className="text-base font-medium">{repository.name}</div>
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded-full ${
+                repository.is_private
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+              }`}
+            >
+              {repository.is_private ? 'Private' : 'Public'}
+            </span>
+          </motion.div>
 
-        <form onSubmit={handleSubmit}>
           <motion.div
             className="space-y-4"
             initial={{ opacity: 0, y: 10 }}
@@ -240,26 +240,26 @@ export default function GithubRepositoryForm({ repository, onSubmit }: GithubRep
                 Branch to be used for service deployment
               </p>
             </div>
-
-            <div className="pt-2">
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                disabled={isSubmitting || envLoading || branchesLoading}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-                    <span>Creating...</span>
-                  </div>
-                ) : (
-                  'Create Service'
-                )}
-              </Button>
-            </div>
           </motion.div>
-        </form>
-      </div>
+        </div>
+
+        <div className="p-4 mt-auto">
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+            disabled={isSubmitting || envLoading || branchesLoading}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                <span>Creating...</span>
+              </div>
+            ) : (
+              'Create Service'
+            )}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

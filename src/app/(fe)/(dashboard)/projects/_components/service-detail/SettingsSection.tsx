@@ -55,7 +55,7 @@ export default function SettingsSection({
       <div className="w-full overflow-y-auto pt-6 pl-12 pr-48">
         <VerticalTimeline>
           <TimelineItem ref={sourceRef} icon={<Code className="h-4 w-4" />} title="Source">
-            <SourceSection />
+            <SourceSection serviceId={numericServiceId} />
           </TimelineItem>
 
           <TimelineItem

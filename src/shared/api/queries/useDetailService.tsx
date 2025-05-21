@@ -19,9 +19,35 @@ query GetServiceSettings($serviceId: Float!) {
 }
 `);
 
+const GET_GITHUB_SERVICE_INFO = gql(`
+  query Get_github_service_info($serviceId: Int!, $environmentId: Int!) {
+    get_github_service_info(service_id: $serviceId, environment_id: $environmentId) {
+      ... on GetGithubServiceInfoSuccess {
+        status
+        githubServiceInfo {
+          owner
+          name
+          connectedBranch
+        }
+      }
+      ... on GetGithubServiceInfoError {
+        status
+        message
+      }
+    }
+  }
+`);
+
 export function useGetServiceSettings(serviceId: number) {
   return useQuery(GET_SERVICE_SETTINGS, {
     variables: { serviceId },
+    fetchPolicy: 'cache-first',
+  });
+}
+
+export function useGetGithubServiceInfo(serviceId: number, environmentId: number) {
+  return useQuery(GET_GITHUB_SERVICE_INFO, {
+    variables: { serviceId, environmentId },
     fetchPolicy: 'cache-first',
   });
 }

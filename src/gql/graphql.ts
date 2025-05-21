@@ -96,6 +96,25 @@ export type AddTeamMemberSuccessResult = {
   status: Status;
 };
 
+/** The result of connecting a github branch to an environment error */
+export type ConnectGithubBranchError = {
+  __typename?: 'ConnectGithubBranchError';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
+/** The result of connecting a github branch to an environment */
+export type ConnectGithubBranchResult = ConnectGithubBranchError | ConnectGithubBranchSuccess;
+
+/** The result of connecting a github branch to an environment */
+export type ConnectGithubBranchSuccess = {
+  __typename?: 'ConnectGithubBranchSuccess';
+  /** The status of the result */
+  status: Status;
+};
+
 /** Data of the created service */
 export type CreateNewServiceData = {
   __typename?: 'CreateNewServiceData';
@@ -489,6 +508,26 @@ export type GetEnvironmentsSuccess = {
   status: Status;
 };
 
+/** The result of getting a github service info error */
+export type GetGithubServiceInfoError = {
+  __typename?: 'GetGithubServiceInfoError';
+  /** The message of the result */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the result */
+  status: Status;
+};
+
+export type GetGithubServiceInfoResult = GetGithubServiceInfoError | GetGithubServiceInfoSuccess;
+
+/** The result of getting a github service info */
+export type GetGithubServiceInfoSuccess = {
+  __typename?: 'GetGithubServiceInfoSuccess';
+  /** The github service info */
+  githubServiceInfo: GithubServiceInfo;
+  /** The status of the result */
+  status: Status;
+};
+
 export type GetProjectDetailsResult = GetProjectDetailsResultError | GetProjectDetailsResultSuccess;
 
 export type GetProjectDetailsResultError = {
@@ -588,6 +627,17 @@ export enum GithubRepositorySortDirection {
   Desc = 'DESC',
 }
 
+/** The result of getting a github service info */
+export type GithubServiceInfo = {
+  __typename?: 'GithubServiceInfo';
+  /** The connected branch */
+  connectedBranch: Scalars['String']['output'];
+  /** The name of the repository */
+  name: Scalars['String']['output'];
+  /** The owner of the github service */
+  owner: Scalars['String']['output'];
+};
+
 export type MailResponse = {
   __typename?: 'MailResponse';
   message?: Maybe<Scalars['String']['output']>;
@@ -607,6 +657,8 @@ export type Mutation = {
   add_environment: AddEnvironmentsResult;
   /** Add a team member to a project */
   add_team_member: AddTeamMemberResult;
+  /** Connect a github branch to an environment */
+  connect_github_branch: ConnectGithubBranchResult;
   /** Create a new project */
   create_project: CreateProjectResult;
   /** Create a new service */
@@ -647,6 +699,12 @@ export type MutationAdd_EnvironmentArgs = {
 export type MutationAdd_Team_MemberArgs = {
   member: AddTeamMemberInput;
   project_slug: Scalars['String']['input'];
+};
+
+export type MutationConnect_Github_BranchArgs = {
+  branch: Scalars['String']['input'];
+  environment_id: Scalars['Int']['input'];
+  service_id: Scalars['Int']['input'];
 };
 
 export type MutationCreate_ProjectArgs = {
@@ -818,6 +876,8 @@ export type Query = {
   get_branches: GetBranchesResult;
   /** Get all database services for creating new service */
   get_database_services: GetDatabaseServiceResult;
+  /** Get all github branches */
+  get_github_service_info: GetGithubServiceInfoResult;
   /** Get the details of a project */
   get_project_details: GetProjectDetailsResult;
   /** Get the permissions of a project */
@@ -869,6 +929,11 @@ export type QueryGet_All_ServicesArgs = {
 export type QueryGet_BranchesArgs = {
   owner: Scalars['String']['input'];
   repo: Scalars['String']['input'];
+};
+
+export type QueryGet_Github_Service_InfoArgs = {
+  environment_id: Scalars['Int']['input'];
+  service_id: Scalars['Int']['input'];
 };
 
 export type QueryGet_Project_DetailsArgs = {
@@ -1096,6 +1161,19 @@ export type UpdateServiceSettingsMutation = {
     | { __typename?: 'UpdateServiceSettingsSuccessResult'; status: Status };
 };
 
+export type ConnectGithubBranchMutationVariables = Exact<{
+  serviceId: Scalars['Int']['input'];
+  environmentId: Scalars['Int']['input'];
+  branch: Scalars['String']['input'];
+}>;
+
+export type ConnectGithubBranchMutation = {
+  __typename?: 'Mutation';
+  connect_github_branch:
+    | { __typename?: 'ConnectGithubBranchError'; status: Status; message?: string | null }
+    | { __typename?: 'ConnectGithubBranchSuccess'; status: Status };
+};
+
 export type CreateEnvironmentMutationVariables = Exact<{
   projectSlug: Scalars['String']['input'];
   environment: AddEnvironmentsInput;
@@ -1316,6 +1394,27 @@ export type GetServiceSettingsQuery = {
           port: string;
           use_ai_review: boolean;
           domain?: string | null;
+        };
+      };
+};
+
+export type Get_Github_Service_InfoQueryVariables = Exact<{
+  serviceId: Scalars['Int']['input'];
+  environmentId: Scalars['Int']['input'];
+}>;
+
+export type Get_Github_Service_InfoQuery = {
+  __typename?: 'Query';
+  get_github_service_info:
+    | { __typename?: 'GetGithubServiceInfoError'; status: Status; message?: string | null }
+    | {
+        __typename?: 'GetGithubServiceInfoSuccess';
+        status: Status;
+        githubServiceInfo: {
+          __typename?: 'GithubServiceInfo';
+          owner: string;
+          name: string;
+          connectedBranch: string;
         };
       };
 };
@@ -1607,6 +1706,98 @@ export const UpdateServiceSettingsDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateServiceSettingsMutation, UpdateServiceSettingsMutationVariables>;
+export const ConnectGithubBranchDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ConnectGithubBranch' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'branch' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'connect_github_branch' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'environment_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'branch' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'branch' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ConnectGithubBranchSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'ConnectGithubBranchError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ConnectGithubBranchMutation, ConnectGithubBranchMutationVariables>;
 export const CreateEnvironmentDocument = {
   kind: 'Document',
   definitions: [
@@ -2765,6 +2956,99 @@ export const GetServiceSettingsDocument = {
     },
   ],
 } as unknown as DocumentNode<GetServiceSettingsQuery, GetServiceSettingsQueryVariables>;
+export const Get_Github_Service_InfoDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'Get_github_service_info' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'get_github_service_info' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'environment_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'environmentId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetGithubServiceInfoSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'githubServiceInfo' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'connectedBranch' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetGithubServiceInfoError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<Get_Github_Service_InfoQuery, Get_Github_Service_InfoQueryVariables>;
 export const GetEnvironmentValuesDocument = {
   kind: 'Document',
   definitions: [

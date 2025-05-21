@@ -102,6 +102,8 @@ export default function DangerSettings({ projectSlug, projectName }: DangerSetti
 
       if (data?.delete_project.__typename === 'DeleteProjectSuccess') {
         toast.success('Project deleted successfully');
+        setIsDeleting(false);
+        setIsDeletingProject(false);
         setTimeout(() => {
           router.push('/dashboard');
         }, 1000);

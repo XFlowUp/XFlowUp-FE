@@ -92,7 +92,7 @@ export default function ServiceDialog({ isOpen, onOpenChange }: ServiceDialogPro
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="flex flex-col w-[500px] overflow-hidden max-h-[80vh]">
+      <DialogContent className="flex flex-col w-[500px] overflow-hidden h-[80vh]">
         <DialogHeader className="flex-shrink-0">
           <motion.div
             className="flex flex-col items-center space-y-2 sm:space-y-4"
