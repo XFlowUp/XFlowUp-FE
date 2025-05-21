@@ -1369,6 +1369,17 @@ export type RemoveTeamMemberMutation = {
     | { __typename?: 'RemoveTeamMemberResultSuccess'; status: Status; message?: string | null };
 };
 
+export type TopupMutationVariables = Exact<{
+  data: CreatePaymentInput;
+}>;
+
+export type TopupMutation = {
+  __typename?: 'Mutation';
+  topup:
+    | { __typename?: 'CreatePaymentErrorResult'; status: Status; message: string }
+    | { __typename?: 'CreatePaymentSuccessResult'; status: Status; payment_url: string };
+};
+
 export type GetAllServicesQueryVariables = Exact<{
   projectSlug: Scalars['String']['input'];
 }>;
@@ -2678,6 +2689,75 @@ export const RemoveTeamMemberDocument = {
     },
   ],
 } as unknown as DocumentNode<RemoveTeamMemberMutation, RemoveTeamMemberMutationVariables>;
+export const TopupDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'Topup' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreatePaymentInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'topup' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreatePaymentSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'payment_url' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreatePaymentErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TopupMutation, TopupMutationVariables>;
 export const GetAllServicesDocument = {
   kind: 'Document',
   definitions: [

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTopupMutation } from '@/shared/api/mutations/useTopupMutation';
+import { toast } from 'sonner';
 
 interface TopUpDialogProps {
   children: React.ReactNode;
@@ -52,6 +54,8 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
   const [amount, setAmount] = useState<string>('');
   const [open, setOpen] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [topup, { loading: topupLoading }] = useTopupMutation();
 
   // Kết hợp màu mặc định với màu tùy chỉnh
   const colors = {
@@ -86,16 +90,47 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
     return null;
   }, [numericAmount]);
 
-  const handleTopUp = () => {
-    if (isAmountValid) {
-      if (onTopUp) {
-        onTopUp(numericAmount);
+  const handleTopUp = useCallback(async () => {
+    if (!isAmountValid) return;
+
+    try {
+      setIsProcessing(true);
+
+      const result = await topup({
+        variables: {
+          data: {
+            amount: numericAmount,
+          },
+        },
+      });
+
+      const topupResult = result.data?.topup;
+
+      if (topupResult?.__typename === 'CreatePaymentSuccessResult') {
+        const paymentUrl = topupResult.payment_url;
+        if (paymentUrl) {
+          window.open(paymentUrl, '_blank');
+        }
+
+        setOpen(false);
+        setAmount('');
+        setSelectedAmount(null);
+
+        if (onTopUp) {
+          onTopUp(numericAmount);
+        }
+
+        toast.success(`Redirecting to payment gateway for $${formattedAmount} top up`);
+      } else if (topupResult?.__typename === 'CreatePaymentErrorResult') {
+        toast.error(topupResult.message || 'Failed to create payment request.');
       }
-      setOpen(false);
-      setAmount('');
-      setSelectedAmount(null);
+    } catch (error) {
+      console.error('Top up error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
-  };
+  }, [isAmountValid, numericAmount, formattedAmount, topup, onTopUp]);
 
   const handleSuggestedAmountClick = (suggestedAmount: number) => {
     setSelectedAmount(suggestedAmount);
@@ -158,6 +193,7 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
                       : `bg-transparent ${colors.buttonOutlineBg}`
                   } border ${colors.borderColor} h-16`}
                   onClick={() => handleSuggestedAmountClick(suggestedAmount)}
+                  disabled={isProcessing || topupLoading}
                 >
                   <span className="font-semibold text-lg">{suggestedAmount} $</span>
                 </Button>
@@ -181,6 +217,7 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
                 max={MAX_AMOUNT}
                 step="0.01"
                 inputMode="decimal"
+                disabled={isProcessing || topupLoading}
                 onKeyDown={e => {
                   if (['e', '+', '-'].includes(e.key)) {
                     e.preventDefault();
@@ -210,10 +247,10 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
           </div>
           <Button
             onClick={handleTopUp}
-            disabled={!isAmountValid}
+            disabled={!isAmountValid || isProcessing || topupLoading}
             className={`h-12 px-6 ${colors.buttonBg} ${colors.buttonHoverBg}`}
           >
-            Top Up Now
+            {isProcessing || topupLoading ? 'Processing...' : 'Top Up Now'}
           </Button>
         </div>
 
@@ -232,7 +269,12 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={resetDialog} className="w-full">
+          <Button
+            variant="outline"
+            onClick={resetDialog}
+            className="w-full"
+            disabled={isProcessing || topupLoading}
+          >
             Cancel
           </Button>
         </DialogFooter>
