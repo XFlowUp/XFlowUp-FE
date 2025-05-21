@@ -13,8 +13,30 @@ const GET_USER_INFO = gql(`
 
 `);
 
-export default function useUserInfo() {
+const GET_BALANCE = gql(`
+  query Balance {
+    balance {
+      ... on BalanceResultSuccess {
+        status
+        balance
+        currency
+      }
+      ... on BalanceResultError {
+        status
+        message
+      }
+    }
+  }
+`);
+
+export function useUserInfo() {
   return useQuery(GET_USER_INFO, {
+    fetchPolicy: 'network-only',
+  });
+}
+
+export function useBalance() {
+  return useQuery(GET_BALANCE, {
     fetchPolicy: 'network-only',
   });
 }

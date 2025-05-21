@@ -96,6 +96,11 @@ const getMessageRounding = (text: string) => {
   return 'rounded-lg';
 };
 
+interface NotificationPermissionState {
+  granted: boolean;
+  asked: boolean;
+}
+
 export default function MessagePanel() {
   const [showMessages, setShowMessages] = useState(false);
   const [messageText, setMessageText] = useState('');
@@ -112,6 +117,100 @@ export default function MessagePanel() {
   const { user } = useAuth();
   const { client } = useChatContext();
   const { channel, messages: allMessages } = useChannelStateContext();
+  const [originalTitle, setOriginalTitle] = useState<string>('');
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermissionState>(
+    {
+      granted: false,
+      asked: false,
+    }
+  );
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      const currentPermission = Notification.permission;
+
+      setNotificationPermission({
+        granted: currentPermission === 'granted',
+        asked: currentPermission !== 'default',
+      });
+
+      if (currentPermission === 'default') {
+        Notification.requestPermission().then(permission => {
+          setNotificationPermission({
+            granted: permission === 'granted',
+            asked: true,
+          });
+        });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!channel) return;
+
+    const handleNewMessage = (event: any) => {
+      const message = event.message;
+
+      if (message.user?.id === client.user?.id) return;
+
+      if (document.visibilityState === 'hidden' && notificationPermission.granted) {
+        if (document.title && !document.title.includes('(')) {
+          setOriginalTitle(document.title);
+        }
+
+        document.title = `(1) ${originalTitle || 'XflowUp'}`;
+
+        const notification = new Notification(message.user?.name || 'XflowUp', {
+          body: message.text || 'Bạn có tin nhắn mới',
+          icon: '/logo.png',
+        });
+
+        setTimeout(() => notification.close(), 5000);
+
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      }
+    };
+
+    channel.on('message.new', handleNewMessage);
+
+    return () => {
+      channel.off('message.new', handleNewMessage);
+    };
+  }, [channel, client, originalTitle, notificationPermission.granted]);
+
+  useEffect(() => {
+    if (document.title) {
+      setOriginalTitle(document.title);
+    }
+
+    const handleFocus = async () => {
+      if (channel && document.visibilityState === 'visible') {
+        try {
+          const unreadCount = await channel.countUnread();
+          if (unreadCount > 0) {
+            channel.markRead();
+          }
+        } catch (error) {
+          console.error('Error checking unread messages:', error);
+        }
+
+        if (originalTitle) {
+          document.title = originalTitle;
+        }
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [channel, originalTitle]);
 
   useEffect(() => {
     const updateMaxHeight = () => {

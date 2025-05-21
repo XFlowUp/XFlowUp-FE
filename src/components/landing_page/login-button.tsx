@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/shared/stores/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserDropdown } from '../user-nav';
-import useUserInfo from '@/shared/api/queries/useUserInfo';
+
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import { useUserInfo } from '@/shared/api/queries/useUserInfo';
 
 export default function LoginButton() {
   const router = useRouter();

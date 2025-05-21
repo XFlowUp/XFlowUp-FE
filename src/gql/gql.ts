@@ -40,6 +40,7 @@ type Documents = {
   'query GetBranches($owner: String!, $repo: String!) {\n      get_branches(owner: $owner, repo: $repo) {\n      ... on GetBranchesSuccessResult {\n        status\n        data\n      }\n      ... on GetBranchesErrorResult {\n        status\n        message\n      }\n    }\n  }': typeof types.GetBranchesDocument;
   '\nquery GetTeamMembers($projectSlug: String!) {\n  team_members(project_slug: $projectSlug) {\n    ... on GetTeamSuccess {\n      status\n      team {\n        slug\n        members {\n          email\n          name\n          profile_url\n          status\n          permissions\n        }\n      }\n    }\n    ... on GetTeamError {\n      status\n      message\n    }\n  }\n}\n': typeof types.GetTeamMembersDocument;
   '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n': typeof types.GetUserInfoQueryDocument;
+  '\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n': typeof types.BalanceDocument;
 };
 const documents: Documents = {
   '\n    mutation UpdateServiceSettings($serviceId: Float!, $port: String!, $useAiReview: Boolean!, $domain: String!) {\n      updateServiceSettings(service_id: $serviceId, port: $port, use_ai_review: $useAiReview, domain: $domain) {\n          ... on UpdateServiceSettingsSuccessResult {\n          status\n          }\n          ... on UpdateServiceSettingsErrorResult {\n          status\n          message\n          }\n      }\n    }\n':
@@ -94,6 +95,8 @@ const documents: Documents = {
     types.GetTeamMembersDocument,
   '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n':
     types.GetUserInfoQueryDocument,
+  '\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n':
+    types.BalanceDocument,
 };
 
 /**
@@ -266,6 +269,12 @@ export function gql(
 export function gql(
   source: '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n'
 ): (typeof documents)['\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n'];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: '\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n'
+): (typeof documents)['\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n'];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

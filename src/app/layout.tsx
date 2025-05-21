@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import TanstackQueryProvider from '@/shared/providers/TanstackQueryProvider';
 import { ThemeProvider } from '@/shared/providers/ThemeProvider';
-import AuthProvider from '@/shared/providers/AuthGuard';
 import GraphQLProvider from '@/shared/providers/GraphQL';
 
 const geistSans = Geist({
@@ -36,9 +35,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <GraphQLProvider>
-              <AuthProvider>{children}</AuthProvider>
-            </GraphQLProvider>
+            <GraphQLProvider>{children}</GraphQLProvider>
           </ThemeProvider>
         </body>
       </TanstackQueryProvider>

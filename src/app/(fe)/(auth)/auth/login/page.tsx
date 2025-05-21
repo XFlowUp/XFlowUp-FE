@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { FaGithub } from '@react-icons/all-files/fa/FaGithub';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/shared/stores/auth';
-import useUserInfo from '@/shared/api/queries/useUserInfo';
 import { useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { LoadingPageWithDots } from '@/components/ui/loading-spinner';
-
+import { useUserInfo } from '@/shared/api/queries/useUserInfo';
 export default function LoginPage() {
   const router = useRouter();
   const { loading: isLoading, data } = useUserInfo();

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
-import useUserInfo from '../api/queries/useUserInfo';
+import { useUserInfo } from '../api/queries/useUserInfo';
 import { useRouter } from 'next/navigation';
 import { LoadingPageWithDots } from '@/components/ui/loading-spinner';
 

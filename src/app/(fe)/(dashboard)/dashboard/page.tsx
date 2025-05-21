@@ -8,14 +8,22 @@ import Projects from './_components/Projects';
 import CreateProjectButton from '@/app/(fe)/(dashboard)/dashboard/_components/CreateProjectButton';
 import { useState } from 'react';
 import ThemeLogo from '@/components/theme-logo';
+import { useBalance } from '@/shared/api/queries/useUserInfo';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
   const [projectRefreshKey, setProjectRefreshKey] = useState(0);
+  const { data: balanceData, loading: balanceLoading } = useBalance();
 
   const handleProjectCreated = () => {
     setProjectRefreshKey(prev => prev + 1);
   };
+
+  // Lấy thông tin về số dư từ API
+  const balanceInfo = balanceData?.balance;
+  const balance = balanceInfo && 'balance' in balanceInfo ? balanceInfo.balance : null;
+  const currency = balanceInfo && 'currency' in balanceInfo ? balanceInfo.currency : 'USD';
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="container mx-auto px-5 lg:px-8 max-w-6xl">
@@ -73,7 +81,9 @@ export default function Dashboard() {
                     <div className="flex space-x-1">
                       <p className="text-sm font-semibold">Free Trial</p>
                       <p className="text-sm opacity-50">|</p>
-                      <p className="text-sm">$ 4.75</p>
+                      <p className="text-sm">
+                        {balanceLoading ? 'Loading' : `${balance || '0.00'} ${currency}`}
+                      </p>
                     </div>
                     <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
                   </div>

@@ -5,10 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { useBalance } from '@/shared/api/queries/useUserInfo';
 
 export default function PlanHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { data: balanceData, loading: balanceLoading } = useBalance();
+
+  const balanceInfo = balanceData?.balance;
+  const balance = balanceInfo && 'balance' in balanceInfo ? balanceInfo.balance : null;
+  const currency = balanceInfo && 'currency' in balanceInfo ? balanceInfo.currency : 'USD';
+
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
@@ -28,7 +35,9 @@ export default function PlanHeader() {
           >
             <span className="font-medium">TRIAL</span>
             <span className="text-green-300 dark:text-green-700">|</span>
-            <span className="text-green-500 dark:text-green-400">$ 4.68</span>
+            <span className="text-green-500 dark:text-green-400">
+              {balanceLoading ? 'Loading' : `${balance || '0.00'} ${currency}`}
+            </span>
           </Badge>
           {isOpen && (
             <Card className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[300px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-lg z-50">
@@ -39,7 +48,7 @@ export default function PlanHeader() {
 
                 <div className="bg-green-50 dark:bg-green-950/50 rounded-md p-4 mb-4">
                   <p className="text-green-600 dark:text-green-400 text-center text-2xl font-medium">
-                    $ 4.68
+                    {balanceLoading ? 'Loading' : `${balance || '0.00'} ${currency}`}
                   </p>
                   <p className="text-green-600 dark:text-green-400 text-center text-sm">
                     Free Credits Remaining

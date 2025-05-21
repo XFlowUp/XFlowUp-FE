@@ -96,6 +96,28 @@ export type AddTeamMemberSuccessResult = {
   status: Status;
 };
 
+export type BalanceResult = BalanceResultError | BalanceResultSuccess;
+
+/** The balance of the user */
+export type BalanceResultError = {
+  __typename?: 'BalanceResultError';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the balance */
+  status: Status;
+};
+
+/** The balance of the user */
+export type BalanceResultSuccess = {
+  __typename?: 'BalanceResultSuccess';
+  /** The balance of the user */
+  balance: Scalars['String']['output'];
+  /** The currency of the balance */
+  currency: Scalars['String']['output'];
+  /** The status of the balance */
+  status: Status;
+};
+
 /** The result of connecting a github branch to an environment error */
 export type ConnectGithubBranchError = {
   __typename?: 'ConnectGithubBranchError';
@@ -862,6 +884,7 @@ export type Query = {
   addUser: Scalars['String']['output'];
   /** Get all projects */
   all_projects: ProjectResult;
+  balance: BalanceResult;
   /** Get deployments history */
   deployments_history: DeploymentHistoryResult;
   /** Get environment values */
@@ -1599,6 +1622,15 @@ export type GetUserInfoQueryQuery = {
     email: string;
     profile_pic_url?: string | null;
   };
+};
+
+export type BalanceQueryVariables = Exact<{ [key: string]: never }>;
+
+export type BalanceQuery = {
+  __typename?: 'Query';
+  balance:
+    | { __typename?: 'BalanceResultError'; status: Status; message?: string | null }
+    | { __typename?: 'BalanceResultSuccess'; status: Status; balance: string; currency: string };
 };
 
 export const UpdateServiceSettingsDocument = {
@@ -3824,3 +3856,56 @@ export const GetUserInfoQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<GetUserInfoQueryQuery, GetUserInfoQueryQueryVariables>;
+export const BalanceDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'Balance' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'balance' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'BalanceResultSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'balance' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'currency' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'BalanceResultError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<BalanceQuery, BalanceQueryVariables>;
