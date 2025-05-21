@@ -239,6 +239,25 @@ export type CreateProjectSuccess = {
   status: Status;
 };
 
+export type CreateSubscriptionCheckoutError = {
+  __typename?: 'CreateSubscriptionCheckoutError';
+  /** The error message */
+  message?: Maybe<Scalars['String']['output']>;
+  /** The status of the subscription */
+  status: Status;
+};
+
+export type CreateSubscriptionCheckoutResult =
+  | CreateSubscriptionCheckoutError
+  | CreateSubscriptionCheckoutSuccess;
+
+export type CreateSubscriptionCheckoutSuccess = {
+  __typename?: 'CreateSubscriptionCheckoutSuccess';
+  /** The status of the subscription */
+  status: Status;
+  subscription_url: Scalars['String']['output'];
+};
+
 export enum Deploy_Status {
   Failed = 'FAILED',
   Pending = 'PENDING',
@@ -681,6 +700,7 @@ export type Mutation = {
   add_team_member: AddTeamMemberResult;
   /** Connect a github branch to an environment */
   connect_github_branch: ConnectGithubBranchResult;
+  createSubscriptionCheckout: CreateSubscriptionCheckoutResult;
   /** Create a new project */
   create_project: CreateProjectResult;
   /** Create a new service */
@@ -727,6 +747,10 @@ export type MutationConnect_Github_BranchArgs = {
   branch: Scalars['String']['input'];
   environment_id: Scalars['Int']['input'];
   service_id: Scalars['Int']['input'];
+};
+
+export type MutationCreateSubscriptionCheckoutArgs = {
+  planId: Scalars['Float']['input'];
 };
 
 export type MutationCreate_ProjectArgs = {
@@ -1162,8 +1186,12 @@ export type UpdateServiceSettingsSuccessResult = {
 
 export type UserInfo = {
   __typename?: 'UserInfo';
+  /** The current plan of the user */
+  current_plan_id?: Maybe<Scalars['String']['output']>;
   /** The email of the user */
   email: Scalars['String']['output'];
+  /** Whether the user is a trial */
+  is_trial?: Maybe<Scalars['Boolean']['output']>;
   /** The name of the user */
   name: Scalars['String']['output'];
   /** The avatar URL of the user */
@@ -1621,6 +1649,8 @@ export type GetUserInfoQueryQuery = {
     name: string;
     email: string;
     profile_pic_url?: string | null;
+    current_plan_id?: string | null;
+    is_trial?: boolean | null;
   };
 };
 
@@ -3848,6 +3878,8 @@ export const GetUserInfoQueryDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'name' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'email' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'profile_pic_url' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'current_plan_id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'is_trial' } },
               ],
             },
           },

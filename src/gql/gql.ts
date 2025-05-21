@@ -39,7 +39,7 @@ type Documents = {
   'query SearchRepositories($keyword: String!, $page: Int, $perPage: Int, $sortBy: GithubRepositorySortBy, $sortDirection: GithubRepositorySortDirection) {\n    search_repositories(keyword: $keyword, page: $page, per_page: $perPage, sortBy: $sortBy, sortDirection: $sortDirection) {\n      ... on SearchRepositorySuccessResult {\n        status\n        data {\n          id\n          name\n          owner {\n            id\n            login\n            avatar_url\n          }\n          description\n          url\n          git_url\n          is_private\n          created_at\n          updated_at\n        }\n        total_count\n      }\n      ... on SearchRepositoryErrorResult {\n        status\n        message\n      }\n    }\n  }\n': typeof types.SearchRepositoriesDocument;
   'query GetBranches($owner: String!, $repo: String!) {\n      get_branches(owner: $owner, repo: $repo) {\n      ... on GetBranchesSuccessResult {\n        status\n        data\n      }\n      ... on GetBranchesErrorResult {\n        status\n        message\n      }\n    }\n  }': typeof types.GetBranchesDocument;
   '\nquery GetTeamMembers($projectSlug: String!) {\n  team_members(project_slug: $projectSlug) {\n    ... on GetTeamSuccess {\n      status\n      team {\n        slug\n        members {\n          email\n          name\n          profile_url\n          status\n          permissions\n        }\n      }\n    }\n    ... on GetTeamError {\n      status\n      message\n    }\n  }\n}\n': typeof types.GetTeamMembersDocument;
-  '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n': typeof types.GetUserInfoQueryDocument;
+  '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n    current_plan_id\n    is_trial\n    }\n  }\n\n': typeof types.GetUserInfoQueryDocument;
   '\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n': typeof types.BalanceDocument;
 };
 const documents: Documents = {
@@ -93,7 +93,7 @@ const documents: Documents = {
     types.GetBranchesDocument,
   '\nquery GetTeamMembers($projectSlug: String!) {\n  team_members(project_slug: $projectSlug) {\n    ... on GetTeamSuccess {\n      status\n      team {\n        slug\n        members {\n          email\n          name\n          profile_url\n          status\n          permissions\n        }\n      }\n    }\n    ... on GetTeamError {\n      status\n      message\n    }\n  }\n}\n':
     types.GetTeamMembersDocument,
-  '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n':
+  '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n    current_plan_id\n    is_trial\n    }\n  }\n\n':
     types.GetUserInfoQueryDocument,
   '\n  query Balance {\n    balance {\n      ... on BalanceResultSuccess {\n        status\n        balance\n        currency\n      }\n      ... on BalanceResultError {\n        status\n        message\n      }\n    }\n  }\n':
     types.BalanceDocument,
@@ -267,8 +267,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n'
-): (typeof documents)['\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n  } \n}\n\n'];
+  source: '\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n    current_plan_id\n    is_trial\n    }\n  }\n\n'
+): (typeof documents)['\n  query GetUserInfoQuery {\n  user_info {\n    name\n    email\n    profile_pic_url\n    current_plan_id\n    is_trial\n    }\n  }\n\n'];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

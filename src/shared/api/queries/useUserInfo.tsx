@@ -8,8 +8,10 @@ const GET_USER_INFO = gql(`
     name
     email
     profile_pic_url
-  } 
-}
+    current_plan_id
+    is_trial
+    }
+  }
 
 `);
 
