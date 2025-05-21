@@ -4,95 +4,299 @@ import { ThemeToggle } from '../theme-toggle';
 import { GithubIcon } from '@/components/ui/github';
 import { FacebookIcon } from '../ui/facebook';
 import { YoutubeIcon } from '../ui/youtube';
+import { ChevronRight, Train } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="border-t w-full flex flex-col items-center">
-      <div className="container flex flex-col items-center gap-8 py-8 md:flex-row md:justify-center md:py-12">
-        <div className="flex-1 text-center md:text-left space-y-4">
-          <h2 className="font-bold">Amane Soft</h2>
-          <p className="text-sm text-muted-foreground">
-            Pioneering software solutions for the digital age.
-          </p>
-        </div>
-        <div className="grid flex-1 grid-cols-2 gap-12 sm:grid-cols-3">
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Solutions</h3>
-            <ul className="space-y-3 text-sm">
+    <footer className="bg-white text-gray-800 dark:bg-[#0B0B14] dark:text-white">
+      {/* Main footer content */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Featured section */}
+          <div>
+            <h3 className="text-sm font-medium mb-6">Featured</h3>
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 dark:bg-[#13131f] dark:border-[#2a2a3c]">
+                <h4 className="text-sm font-medium mb-1">Launch Week 02</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Explore everything we launched—new features, updates, and more.
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 dark:bg-[#13131f] dark:border-[#2a2a3c]">
+                <h4 className="text-sm font-medium mb-1">Railway V2: Faster and Cheaper</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Learn how we have simultaneously decreased cost and increased performance.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Product section */}
+          <div>
+            <h3 className="text-sm font-medium mb-6">Product</h3>
+            <ul className="space-y-3">
               <li>
                 <Link
-                  href="/ai-analytics"
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
-                  AI Analytics
+                  Features
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/cloud-services"
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  href="/pricing"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
-                  Cloud Services
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Templates
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Open Source Kickback
+                </Link>
+              </li>
+            </ul>
+
+            <h3 className="text-sm font-medium mt-8 mb-6">Resources</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Docs
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Customers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Changelog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Central Station
                 </Link>
               </li>
             </ul>
           </div>
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Company</h3>
-            <ul className="space-y-3 text-sm">
+
+          {/* Compare section */}
+          <div>
+            <h3 className="text-sm font-medium mb-6">Compare</h3>
+            <ul className="space-y-3">
               <li>
                 <Link
-                  href="/about"
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
-                  About Us
+                  Heroku
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/careers"
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Render
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Fly.io
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Vercel
+                </Link>
+              </li>
+            </ul>
+
+            <h3 className="text-sm font-medium mt-8 mb-6">Company</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Philosophy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 >
                   Careers
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Shop
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Trust
+                </Link>
+              </li>
             </ul>
           </div>
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Connect</h3>
-            <div className="flex space-x-2">
-              <Link
-                href="https://github.com/amanesoft"
-                className="text-muted-foreground transition-colors hover:text-primary"
-              >
-                <GithubIcon size={20} />
-                <span className="sr-only">GitHub</span>
-              </Link>
-              <Link
-                href="https://twitter.com/amanesoft"
-                className="text-muted-foreground transition-colors hover:text-primary"
-              >
-                <FacebookIcon size={20} />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link
-                href="https://linkedin.com/company/amanesoft"
-                className="text-muted-foreground transition-colors hover:text-primary"
-              >
-                <YoutubeIcon size={20} />
-                <span className="sr-only">LinkedIn</span>
-              </Link>
-            </div>
+
+          {/* Contact and Legal section */}
+          <div>
+            <h3 className="text-sm font-medium mb-6">Contact</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Discord
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Twitter
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  GitHub
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Email
+                </Link>
+              </li>
+            </ul>
+
+            <h3 className="text-sm font-medium mt-8 mb-6">Legal</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Fair Use
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Bug Bounty Program
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Cookie Preferences
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-      <div className="container border-t py-6 flex justify-between items-center">
-        <div className="flex-1"></div>
-        <p className="flex-1 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Amane Soft, Inc. All rights reserved.
-        </p>
-        <div className="flex-1 flex justify-end">
-          <ThemeToggle />
+
+      {/* Bottom footer with status and copyright */}
+      <div className="border-t border-gray-200 dark:border-[#2a2a3c]">
+        <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Train className="h-5 w-5" />
+            <span className="text-xs text-green-600 dark:text-green-400 flex items-center">
+              All systems operational <ChevronRight className="h-3 w-3 ml-1" />
+            </span>
+          </div>
+          <div className="flex-1 flex justify-end">
+            <ThemeToggle />
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-4 md:mt-0">
+            © 2025 XFlowUp Corp. All rights reserved.
+          </div>
         </div>
       </div>
     </footer>
