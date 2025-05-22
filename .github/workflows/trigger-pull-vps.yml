@@ -1,0 +1,46 @@
+name: Pull and build on VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build & Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            npm --help
+            yarn --version
+            pm2 --version
+            cd ${{ secrets.PROJECT_DIR }}
+            git fetch origin main
+            git reset --hard
+            git pull origin main
+            yarn install
+            yarn build
+            pm2 restart ${{ secrets.PM2_APP_NAME }}
+            echo "Deployment and build successful."
+
+      - name: Commit show
+        run: |
+          echo "Commit message: ${{ github.event.head_commit.message }}"
+
+      - name: Notify via Discord
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: '[{"title": "Deployment and Build Successful", "description": "**Status**: Success", "color": 65280, "fields": [{"name": "Environment", "value": "VPS"}, {"name": "Time", "value": "${{ github.event.head_commit.timestamp }}"}, {"name": "Message", "value": "${{ github.event.head_commit.message }}"}, {"name": "Frontend URL", "value": "[Visit Frontend](https://xflowup.quanganh.me)"}, {"name": "Note", "value": "Restarting apps, wait 10-20s"}]}]'
