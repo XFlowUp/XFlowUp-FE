@@ -81,6 +81,39 @@ export function ThemeToggle() {
 
 export function UserDropdown() {
   const { user } = useAuthStore();
+
+  const getPlanName = () => {
+    if (user?.is_trial) {
+      return 'Trial';
+    }
+
+    switch (user?.current_plan_id) {
+      case '1':
+        return 'Hobby';
+      case '2':
+        return 'Pro';
+      default:
+        return 'Free';
+    }
+  };
+
+  const getPlanColorClasses = () => {
+    const planName = getPlanName();
+
+    switch (planName) {
+      case 'Trial':
+        return 'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+      case 'Free':
+        return 'bg-gray-50 text-gray-500 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
+      case 'Hobby':
+        return 'bg-blue-50 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+      case 'Pro':
+        return 'bg-violet-50 text-violet-500 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800';
+      default:
+        return 'bg-gray-50 text-gray-500 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -91,10 +124,10 @@ export function UserDropdown() {
       <DropdownMenuContent className="w-70" align="end" sideOffset={5}>
         <div className="flex flex-col space-y-1">
           <div className="flex flex-col space-y-3 items-center justify-center relative bg-gray-100 dark:bg-gray-800 pt-7 pb-5 mb-2 rounded-md">
-            <div className="flex flex-col absolute py-1 px-3 rounded border top-0 left-0 mt-2 ml-2 bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
-              <p className="uppercase text-[10px] font-medium text-green-500 dark:text-green-400">
-                Trial
-              </p>
+            <div
+              className={`flex flex-col absolute py-1 px-3 rounded border top-0 left-0 mt-2 ml-2 ${getPlanColorClasses()}`}
+            >
+              <p className="uppercase text-[10px] font-medium">{getPlanName()}</p>
             </div>
             <Avatar className="w-12 h-12 mt-3" />
             <div className="flex flex-col items-center justify-center mt-3">

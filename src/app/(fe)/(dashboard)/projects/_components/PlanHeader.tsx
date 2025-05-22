@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
@@ -8,12 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { useBalance } from '@/shared/api/queries/useUserInfo';
 import { TopUpDialog } from '@/components/ui/top-up-dialog';
 import { useAuthStore } from '@/shared/stores/auth';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
 
 export default function PlanHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: balanceData, loading: balanceLoading } = useBalance();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(dropdownRef as React.RefObject<HTMLElement>, () => {
+    if (isOpen) {
+      setIsOpen(false);
+    }
+  });
 
   const balanceInfo = balanceData?.balance;
   const balance = balanceInfo && 'balance' in balanceInfo ? balanceInfo.balance : null;
@@ -150,7 +158,7 @@ export default function PlanHeader() {
   return (
     <div className="text-white">
       <div className="flex items-center space-x-6">
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <Badge
             variant="outline"
             className={`${planColors.badge} px-3 py-1.5 flex justify-center items-center gap-3 cursor-pointer`}

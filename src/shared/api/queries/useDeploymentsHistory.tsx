@@ -40,5 +40,6 @@ export default function useDeploymentsHistory(
       serviceId,
     },
     skip: !enabled,
+    pollInterval: 2000,
   });
 }

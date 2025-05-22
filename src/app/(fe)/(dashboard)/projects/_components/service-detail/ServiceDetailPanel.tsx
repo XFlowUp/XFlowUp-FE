@@ -37,6 +37,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
   const [isDeploying, setIsDeploying] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const perPage = 10;
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
 
   const {
     data: deploymentsData,
@@ -44,7 +45,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
     error: deploymentsError,
     fetchMore,
     refetch: refetchDeployments,
-  } = useDeploymentsHistory(projectSlug, serviceId, 1, perPage, !!service);
+  } = useDeploymentsHistory(projectSlug, serviceId, 1, perPage, !!service && isPanelOpen);
 
   const { selectedEnvironmentId } = useEnvironment();
 
@@ -66,6 +67,13 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
       }
     }
   }, [deploymentsData]);
+
+  useEffect(() => {
+    setIsPanelOpen(true);
+    return () => {
+      setIsPanelOpen(false);
+    };
+  }, []);
 
   const handleDeployment = async () => {
     if (!service || isDeploying) return;
@@ -346,10 +354,6 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
 
             <div className="flex-grow overflow-hidden">
               <TabsContent value="deployments" className="h-full flex flex-col px-6 md:px-12 py-6">
-                <div className="flex gap-x-2 items-center text-sm mb-4 flex-shrink-0">
-                  <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />{' '}
-                  <span>xflowup.quanganh.me</span>
-                </div>
                 <div className="flex-grow overflow-auto h-full pr-4">
                   {renderDeploymentsContent()}
                 </div>
