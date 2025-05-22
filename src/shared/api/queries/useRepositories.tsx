@@ -113,12 +113,16 @@ export function useSearchRepositories(options: {
   });
 }
 
-export function useGetRepositoryBranches(options: { owner: string; repo: string }) {
+export function useGetRepositoryBranches(
+  options: { owner: string; repo: string },
+  queryOptions?: { skip?: boolean }
+) {
   return useQuery(GET_BRANCHES, {
     variables: {
       owner: options.owner,
       repo: options.repo,
     },
     fetchPolicy: 'cache-first',
+    skip: queryOptions?.skip,
   });
 }

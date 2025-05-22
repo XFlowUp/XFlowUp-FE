@@ -204,6 +204,10 @@ export type CreatePaymentErrorResult = {
 
 export type CreatePaymentInput = {
   amount: Scalars['Float']['input'];
+  /** Cancel URL */
+  cancel_url: Scalars['String']['input'];
+  /** Redirect URL */
+  redirect_url: Scalars['String']['input'];
 };
 
 export type CreatePaymentResult = CreatePaymentErrorResult | CreatePaymentSuccessResult;

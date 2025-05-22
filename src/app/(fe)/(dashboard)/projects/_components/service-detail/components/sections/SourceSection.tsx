@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GitBranch, Loader2, SaveIcon } from 'lucide-react';
+import { GitBranch, SaveIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { useEnvironment } from '../../../EnvironmentContext';
@@ -74,13 +74,23 @@ export const SourceSection: React.FC<SourceSectionProps> = ({ serviceId }) => {
       ? githubServiceInfoData.get_github_service_info.githubServiceInfo
       : null;
 
-  const { data: branchesData, loading: branchesLoading } = useGetRepositoryBranches({
-    owner: githubServiceInfo?.owner || '',
-    repo: githubServiceInfo?.name || '',
-  });
+  const repositoryInfo =
+    githubServiceInfo?.owner && githubServiceInfo?.name
+      ? {
+          owner: githubServiceInfo.owner,
+          repo: githubServiceInfo.name,
+        }
+      : undefined;
+
+  const { data: branchesData, loading: branchesLoading } = useGetRepositoryBranches(
+    repositoryInfo || { owner: '', repo: '' },
+    {
+      skip: !repositoryInfo?.owner || !repositoryInfo?.repo,
+    }
+  );
 
   const branches =
-    branchesData?.get_branches.__typename === 'GetBranchesSuccessResult'
+    branchesData?.get_branches.__typename === 'GetBranchesSuccessResult' && repositoryInfo
       ? branchesData.get_branches.data
       : [];
 

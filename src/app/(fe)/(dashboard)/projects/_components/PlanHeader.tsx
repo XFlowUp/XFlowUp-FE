@@ -33,7 +33,6 @@ export default function PlanHeader() {
     }
   };
 
-  // Lấy màu sắc tương ứng cho từng loại plan
   const getPlanColorClasses = () => {
     const planName = getPlanName();
 
@@ -70,29 +69,13 @@ export default function PlanHeader() {
             textColor: 'text-gray-700 dark:text-gray-300',
             buttonBg: 'bg-gray-600',
             buttonHoverBg: 'hover:bg-gray-700',
+            buttonOutlineBg: 'hover:bg-gray-50 dark:hover:bg-gray-900/20',
+            textListColor: 'text-gray-600 dark:text-gray-400',
             linkColor: 'text-gray-600 dark:text-gray-400',
           },
           topUpButton: 'bg-gray-500 hover:bg-gray-600 text-white',
         };
       case 'Hobby':
-        return {
-          badge:
-            'bg-violet-50 dark:bg-violet-900/30 text-violet-500 dark:text-violet-400 border-violet-200 dark:border-violet-800',
-          card: 'bg-violet-50 dark:bg-violet-950/50',
-          text: 'text-violet-600 dark:text-violet-400',
-          button:
-            'border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/50',
-          topUpColors: {
-            bgColor: 'bg-violet-50 dark:bg-violet-950/30',
-            borderColor: 'border-violet-200 dark:border-violet-800',
-            textColor: 'text-violet-700 dark:text-violet-300',
-            buttonBg: 'bg-violet-600',
-            buttonHoverBg: 'hover:bg-violet-700',
-            linkColor: 'text-violet-600 dark:text-violet-400',
-          },
-          topUpButton: 'bg-violet-500 hover:bg-violet-600 text-white',
-        };
-      case 'Pro':
         return {
           badge:
             'bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 border-blue-200 dark:border-blue-800',
@@ -106,9 +89,31 @@ export default function PlanHeader() {
             textColor: 'text-blue-700 dark:text-blue-300',
             buttonBg: 'bg-blue-600',
             buttonHoverBg: 'hover:bg-blue-700',
+            buttonOutlineBg: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
+            textListColor: 'text-blue-600 dark:text-blue-400',
             linkColor: 'text-blue-600 dark:text-blue-400',
           },
           topUpButton: 'bg-blue-500 hover:bg-blue-600 text-white',
+        };
+      case 'Pro':
+        return {
+          badge:
+            'bg-violet-50 dark:bg-violet-900/30 text-violet-500 dark:text-violet-400 border-violet-200 dark:border-violet-800',
+          card: 'bg-violet-50 dark:bg-violet-950/50',
+          text: 'text-violet-600 dark:text-violet-400',
+          button:
+            'border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/50',
+          topUpColors: {
+            bgColor: 'bg-violet-50 dark:bg-violet-950/30',
+            borderColor: 'border-violet-200 dark:border-violet-800',
+            textColor: 'text-violet-700 dark:text-violet-300',
+            buttonBg: 'bg-violet-600',
+            buttonHoverBg: 'hover:bg-violet-700',
+            buttonOutlineBg: 'hover:bg-violet-50 dark:hover:bg-violet-900/20',
+            linkColor: 'text-violet-600 dark:text-violet-400',
+            textListColor: 'text-violet-600 dark:text-violet-400',
+          },
+          topUpButton: 'bg-violet-500 hover:bg-violet-600 text-white',
         };
       default:
         return {
@@ -139,12 +144,7 @@ export default function PlanHeader() {
   };
   const handleUpgrade = () => {
     setIsOpen(false);
-    router.push('/upgrade');
-  };
-
-  const handleTopUp = (amount: number) => {
-    console.log('Top up amount:', amount);
-    // API integration will be added later
+    router.push('/account/plan');
   };
 
   return (
@@ -205,10 +205,10 @@ export default function PlanHeader() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  Upgrade Plan
+                  View Upgrade Options
                 </Button>
 
-                <TopUpDialog onTopUp={handleTopUp} colorScheme={planColors.topUpColors}>
+                <TopUpDialog colorScheme={planColors.topUpColors}>
                   <Button className={`w-full mb-2 ${planColors.topUpButton}`}>
                     <svg
                       className="w-4 h-4 mr-2"
@@ -227,10 +227,6 @@ export default function PlanHeader() {
                     Top Up Balance
                   </Button>
                 </TopUpDialog>
-
-                <Button className="w-full mb-2" onClick={() => router.push('/upgrade?plan=hobby')}>
-                  View Upgrade Options
-                </Button>
               </div>
             </Card>
           )}

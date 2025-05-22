@@ -10,19 +10,15 @@ import { useState } from 'react';
 import ThemeLogo from '@/components/theme-logo';
 import { useBalance } from '@/shared/api/queries/useUserInfo';
 import { TopUpDialog } from '@/components/ui/top-up-dialog';
-
+import { useRouter } from 'next/navigation';
 export default function Dashboard() {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [projectRefreshKey, setProjectRefreshKey] = useState(0);
   const { data: balanceData, loading: balanceLoading } = useBalance();
 
   const handleProjectCreated = () => {
     setProjectRefreshKey(prev => prev + 1);
-  };
-
-  const handleTopUp = (amount: number) => {
-    console.log('Top up amount:', amount);
-    // API integration will be added later
   };
 
   const balanceInfo = balanceData?.balance;
@@ -56,8 +52,10 @@ export default function Dashboard() {
             bgColor: 'bg-green-50 dark:bg-green-950/30',
             borderColor: 'border-green-200 dark:border-green-800',
             textColor: 'text-green-700 dark:text-green-300',
+            textListColor: 'text-green-600 dark:text-green-400',
             buttonBg: 'bg-green-600',
             buttonHoverBg: 'hover:bg-green-700',
+            buttonOutlineBg: 'hover:bg-green-50 dark:hover:bg-green-900/20',
             linkColor: 'text-green-600 dark:text-green-400',
           },
           topUpButton:
@@ -72,8 +70,10 @@ export default function Dashboard() {
             bgColor: 'bg-gray-50 dark:bg-gray-950/30',
             borderColor: 'border-gray-200 dark:border-gray-800',
             textColor: 'text-gray-700 dark:text-gray-300',
+            textListColor: 'text-gray-600 dark:text-gray-400',
             buttonBg: 'bg-gray-600',
             buttonHoverBg: 'hover:bg-gray-700',
+            buttonOutlineBg: 'hover:bg-gray-50 dark:hover:bg-gray-900/20',
             linkColor: 'text-gray-600 dark:text-gray-400',
           },
           topUpButton:
@@ -82,34 +82,38 @@ export default function Dashboard() {
       case 'Hobby':
         return {
           badge:
-            'bg-violet-50 text-violet-500 border-violet-300 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800',
-          banner: 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
-          topUpColors: {
-            bgColor: 'bg-violet-50 dark:bg-violet-950/30',
-            borderColor: 'border-violet-200 dark:border-violet-800',
-            textColor: 'text-violet-700 dark:text-violet-300',
-            buttonBg: 'bg-violet-600',
-            buttonHoverBg: 'hover:bg-violet-700',
-            linkColor: 'text-violet-600 dark:text-violet-400',
-          },
-          topUpButton:
-            'bg-violet-100 text-violet-600 hover:text-violet-700 border-violet-300 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800 dark:hover:bg-violet-900/50',
-        };
-      case 'Pro':
-        return {
-          badge:
             'bg-blue-50 text-blue-500 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
           banner: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
           topUpColors: {
             bgColor: 'bg-blue-50 dark:bg-blue-950/30',
             borderColor: 'border-blue-200 dark:border-blue-800',
             textColor: 'text-blue-700 dark:text-blue-300',
+            textListColor: 'text-blue-600 dark:text-blue-400',
             buttonBg: 'bg-blue-600',
             buttonHoverBg: 'hover:bg-blue-700',
             linkColor: 'text-blue-600 dark:text-blue-400',
+            buttonOutlineBg: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
           },
           topUpButton:
             'bg-blue-100 text-blue-600 hover:text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/50',
+        };
+      case 'Pro':
+        return {
+          badge:
+            'bg-violet-50 text-violet-500 border-violet-300 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800',
+          banner: 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
+          topUpColors: {
+            bgColor: 'bg-violet-50 dark:bg-violet-950/30',
+            borderColor: 'border-violet-200 dark:border-violet-800',
+            textColor: 'text-violet-700 dark:text-violet-300',
+            textListColor: 'text-violet-600 dark:text-violet-400',
+            buttonBg: 'bg-violet-600',
+            buttonHoverBg: 'hover:bg-violet-700',
+            buttonOutlineBg: 'hover:bg-violet-50 dark:hover:bg-violet-900/20',
+            linkColor: 'text-violet-600 dark:text-violet-400',
+          },
+          topUpButton:
+            'bg-violet-100 text-violet-600 hover:text-violet-700 border-violet-300 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800 dark:hover:bg-violet-900/50',
         };
       default:
         return {
@@ -198,7 +202,7 @@ export default function Dashboard() {
                     <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
                   </div>
                   <div className="flex gap-2">
-                    <TopUpDialog onTopUp={handleTopUp} colorScheme={planColors.topUpColors}>
+                    <TopUpDialog colorScheme={planColors.topUpColors}>
                       <Button variant="outline" className={planColors.topUpButton}>
                         <svg
                           className="w-4 h-4 mr-2"
@@ -217,9 +221,12 @@ export default function Dashboard() {
                         Top Up
                       </Button>
                     </TopUpDialog>
-                    <Link href="/pricing">
-                      <Button>Choose a plan</Button>
-                    </Link>
+                    <Button
+                      className={`${planColors.topUpColors.buttonBg} ${planColors.topUpColors.buttonHoverBg} text-white`}
+                      onClick={() => router.push('/account/plan')}
+                    >
+                      Choose a plan
+                    </Button>
                   </div>
                 </div>
               </div>

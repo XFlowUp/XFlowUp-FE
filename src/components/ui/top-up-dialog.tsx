@@ -19,26 +19,21 @@ import { toast } from 'sonner';
 
 interface TopUpDialogProps {
   children: React.ReactNode;
-  onTopUp?: (amount: number) => void;
   colorScheme?: {
-    // Màu sắc cho phần background của dialog
     bgColor?: string;
-    // Màu sắc cho border
     borderColor?: string;
-    // Màu sắc cho text
     textColor?: string;
-    // Màu sắc cho nút
     buttonBg?: string;
     buttonHoverBg?: string;
-    // Màu sắc cho link
     linkColor?: string;
+    buttonOutlineBg?: string;
+    textListColor?: string;
   };
 }
 
 const SUGGESTED_AMOUNTS = [10, 25, 50, 100];
 const MAX_AMOUNT = 1000;
 
-// Màu mặc định là violet
 const defaultColorScheme = {
   bgColor: 'bg-violet-50 dark:bg-violet-950/30',
   borderColor: 'border-violet-200 dark:border-violet-800',
@@ -50,7 +45,7 @@ const defaultColorScheme = {
   linkColor: 'text-violet-600 dark:text-violet-400',
 };
 
-export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps) {
+export function TopUpDialog({ children, colorScheme }: TopUpDialogProps) {
   const [amount, setAmount] = useState<string>('');
   const [open, setOpen] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -63,8 +58,10 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
     bgColor: colorScheme?.bgColor || defaultColorScheme.bgColor,
     borderColor: colorScheme?.borderColor || defaultColorScheme.borderColor,
     textColor: colorScheme?.textColor || defaultColorScheme.textColor,
+    textListColor: colorScheme?.textListColor || defaultColorScheme.textListColor,
     buttonBg: colorScheme?.buttonBg || defaultColorScheme.buttonBg,
     buttonHoverBg: colorScheme?.buttonHoverBg || defaultColorScheme.buttonHoverBg,
+    buttonOutlineBg: colorScheme?.buttonOutlineBg || defaultColorScheme.buttonOutlineBg,
     linkColor: colorScheme?.linkColor || defaultColorScheme.linkColor,
   };
 
@@ -100,6 +97,8 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
         variables: {
           data: {
             amount: numericAmount,
+            cancel_url: window.location.href,
+            redirect_url: window.location.href,
           },
         },
       });
@@ -109,18 +108,12 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
       if (topupResult?.__typename === 'CreatePaymentSuccessResult') {
         const paymentUrl = topupResult.payment_url;
         if (paymentUrl) {
-          window.open(paymentUrl, '_blank');
+          window.location.href = paymentUrl;
         }
 
         setOpen(false);
         setAmount('');
         setSelectedAmount(null);
-
-        if (onTopUp) {
-          onTopUp(numericAmount);
-        }
-
-        toast.success(`Redirecting to payment gateway for $${formattedAmount} top up`);
       } else if (topupResult?.__typename === 'CreatePaymentErrorResult') {
         toast.error(topupResult.message || 'Failed to create payment request.');
       }
@@ -130,7 +123,7 @@ export function TopUpDialog({ children, onTopUp, colorScheme }: TopUpDialogProps
     } finally {
       setIsProcessing(false);
     }
-  }, [isAmountValid, numericAmount, formattedAmount, topup, onTopUp]);
+  }, [isAmountValid, numericAmount, formattedAmount, topup]);
 
   const handleSuggestedAmountClick = (suggestedAmount: number) => {
     setSelectedAmount(suggestedAmount);
