@@ -7,15 +7,7 @@ import { Header } from '@/components/landing_page/header';
 import { useRouter } from 'next/navigation';
 import MouseMoveEffect from '@/components/mouse-move-effect';
 import { motion } from 'framer-motion';
-
-const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6 },
-  },
-};
+import { useAuthStore } from '@/shared/stores/auth';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -48,6 +40,11 @@ const featureVariants = {
 
 export default function PricingPage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
+  const handleContactUs = () => {
+    window.location.href = 'mailto:admin@xflowup.com';
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -71,111 +68,6 @@ export default function PricingPage() {
       <div className="relative z-10">
         <Header />
         <main className="container mx-auto px-4 py-16">
-          {/* Active Plan Section */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            className="max-w-4xl mx-auto mb-20"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Active Plan</h2>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  className="flex items-center"
-                  onClick={() => router.push('/upgrade?plan=hobby')}
-                >
-                  <span>View Upgrade Options</span>
-                </Button>
-              </motion.div>
-            </div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white dark:bg-[#0F2A1A] border border-gray-200 dark:border-[#1A4A2E] rounded-lg p-8"
-            >
-              <div className="flex flex-col items-center mb-6">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.5, type: 'spring' }}
-                  className="w-24 h-24 rounded-full bg-green-100 dark:bg-[#1A4A2E] flex items-center justify-center mb-4"
-                >
-                  <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center">
-                    <div className="grid grid-cols-3 grid-rows-3 gap-1">
-                      {[1, 0, 1, 0, 1, 0, 1, 0, 1].map((value, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                          className={`w-3 h-3 ${value ? 'bg-[#4ADE80]' : 'bg-white'}`}
-                        ></motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-                <motion.h3
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-3xl font-bold mb-2"
-                >
-                  You&#39;re on the Trial Plan
-                </motion.h3>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-gray-600 dark:text-gray-400 text-center max-w-2xl"
-                >
-                  Thanks for verifying your account and being part of XFlow. As a member of the
-                  Trial Plan, you have access to:
-                </motion.p>
-              </div>
-
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8"
-              >
-                {[
-                  '$5 of free resource usage',
-                  '512 MB RAM / 2 vCPU per service',
-                  'Code and database deployments',
-                  'Community Support',
-                ].map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    variants={featureVariants}
-                    className="bg-gray-50 dark:bg-[#0B1A10] rounded-md p-4 flex items-start"
-                    whileHover={{ x: 5 }}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-green-50 dark:bg-[#0F2A1A] flex items-center justify-center mr-3 mt-0.5">
-                      <Check className="h-3 w-3 text-green-500 dark:text-[#4ADE80]" />
-                    </div>
-                    <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="text-center mt-8"
-            >
-              <h3 className="text-xl font-bold mb-2">Ready to go further?</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Upgrade and outship the competition
-              </p>
-            </motion.div>
-          </motion.div>
-
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -238,7 +130,7 @@ export default function PricingPage() {
                   className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-[#4F8BFF] dark:hover:bg-[#3A6AD4] text-white"
                   onClick={() => router.push('/upgrade?plan=hobby')}
                 >
-                  Sign Up for XFlow
+                  {isAuthenticated ? 'Deploy with XFlowUp' : 'Sign Up for XFlowUp'}
                 </Button>
               </motion.div>
             </motion.div>
@@ -320,7 +212,7 @@ export default function PricingPage() {
                   className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-[#A855F7] dark:hover:bg-[#9333EA] text-white"
                   onClick={() => router.push('/upgrade?plan=pro')}
                 >
-                  Deploy with Pro
+                  {isAuthenticated ? 'Deploy with XFlowUp' : 'Sign Up for XFlowUp'}
                 </Button>
               </motion.div>
             </motion.div>
@@ -376,7 +268,10 @@ export default function PricingPage() {
               </motion.div>
 
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-[#4ADE80] dark:hover:bg-[#22C55E] text-white dark:text-black">
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 dark:bg-[#4ADE80] dark:hover:bg-[#22C55E] text-white dark:text-black"
+                  onClick={handleContactUs}
+                >
                   Contact Us
                 </Button>
               </motion.div>
@@ -422,6 +317,12 @@ function FeatureItem({
     green: 'text-green-600 dark:text-[#4ADE80]',
   };
 
+  const badgeColorMap = {
+    blue: 'bg-blue-600 dark:bg-[#4F8BFF]',
+    purple: 'bg-purple-600 dark:bg-[#A855F7]',
+    green: 'bg-green-600 dark:bg-[#4ADE80]',
+  };
+
   return (
     <motion.div variants={variants} whileHover={{ x: 5 }} className="flex items-start">
       <div className={`flex-shrink-0 h-5 w-5 ${colorMap[color]}`}>
@@ -441,7 +342,7 @@ function FeatureItem({
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500 }}
           >
-            <Badge className="ml-2 bg-purple-600 dark:bg-[#A855F7] text-[0.6rem] py-0 px-1.5 h-4">
+            <Badge className={`ml-2 ${badgeColorMap[color]} text-[0.6rem] py-0 px-1.5 h-4`}>
               NEW
             </Badge>
           </motion.div>

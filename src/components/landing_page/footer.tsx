@@ -1,13 +1,10 @@
 import Link from 'next/link';
 import { ThemeToggle } from '../theme-toggle';
-import { GithubIcon } from '@/components/ui/github';
-import { FacebookIcon } from '../ui/facebook';
-import { YoutubeIcon } from '../ui/youtube';
 import { ChevronRight, Train } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-gray-800 dark:bg-[#0B0B14] dark:text-white">
+    <footer className="text-gray-800 dark:text-white">
       {/* Main footer content */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -22,7 +19,7 @@ export default function Footer() {
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 dark:bg-[#13131f] dark:border-[#2a2a3c]">
-                <h4 className="text-sm font-medium mb-1">Railway V2: Faster and Cheaper</h4>
+                <h4 className="text-sm font-medium mb-1">XFlowUp V2: Faster and Cheaper</h4>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Learn how we have simultaneously decreased cost and increased performance.
                 </p>

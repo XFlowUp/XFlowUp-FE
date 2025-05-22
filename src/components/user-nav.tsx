@@ -19,10 +19,24 @@ import { SunIcon } from '@/components/ui/sun';
 import { MoonIcon } from '@/components/ui/moon';
 import { useAuthStore } from '@/shared/stores/auth';
 import useAuth from '@/shared/hooks/useAuth';
-export function ItemComponent({ icon, title }: { icon: ReactNode; title: string }) {
+import { useRouter } from 'next/navigation';
+
+export function ItemComponent({
+  icon,
+  title,
+  href,
+}: {
+  icon: ReactNode;
+  title: string;
+  href?: string;
+}) {
+  const router = useRouter();
   return (
     <div>
-      <DropdownMenuItem className="px-3 py-2 mt-1 group">
+      <DropdownMenuItem
+        className="px-3 py-2 mt-1 group cursor-pointer"
+        onClick={() => router.push(href ?? '#')}
+      >
         {icon}
         <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
           {title}
@@ -89,7 +103,11 @@ export function UserDropdown() {
           </div>
         </div>
         <DropdownMenuGroup>
-          <ItemComponent icon={<UserIcon className="p-0" />} title="Account Settings" />
+          <ItemComponent
+            icon={<UserIcon className="p-0" />}
+            title="Account Settings"
+            href="/account"
+          />
           <ItemComponent icon={<SettingsGearIcon className="p-0" />} title="Project Settings" />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
