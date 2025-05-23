@@ -31,6 +31,7 @@ jobs:
             git reset --hard
             git pull origin main
             yarn install
+            yarn codegen
             yarn build
             pm2 restart ${{ secrets.PM2_APP_NAME }}
             echo "Deployment and build successful."

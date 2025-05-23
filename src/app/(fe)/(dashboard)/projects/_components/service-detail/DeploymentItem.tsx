@@ -830,7 +830,6 @@ export const DeploymentItem = ({
 
       if (data?.deleteDeployment.__typename === 'DeploymentDeleteSuccessResult') {
         toast.success('Deployment deleted successfully');
-        setShowDeleteDialog(false);
       } else if (data?.deleteDeployment.__typename === 'DeploymentDeleteErrorResult') {
         toast.error(data.deleteDeployment.message || 'Failed to delete deployment');
       }
@@ -838,6 +837,7 @@ export const DeploymentItem = ({
       toast.error('An error occurred while deleting the deployment');
     } finally {
       setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -850,7 +850,6 @@ export const DeploymentItem = ({
 
       if (data?.request_deployment.__typename === 'DeploymentRequestSuccessResult') {
         toast.success('Deployment requested successfully');
-        setShowRedeployDialog(false);
       } else {
         toast.error(data?.request_deployment.message || 'Failed to request deployment');
       }
@@ -858,6 +857,7 @@ export const DeploymentItem = ({
       toast.error('An error occurred while requesting deployment');
     } finally {
       setIsRedeploying(false);
+      setShowRedeployDialog(false);
     }
   };
 
@@ -960,27 +960,37 @@ export const DeploymentItem = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
-                className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-blue-300 dark:hover:bg-blue-950/50 transition-colors"
+                className="cursor-pointer group focus:bg-blue-50 dark:focus:bg-blue-950/50 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
                 onClick={handleViewLogs}
               >
-                <PlayCircle className="h-4 w-4 mr-2" />
-                View logs
+                <PlayCircle className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300" />
+                <span className="text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                  View logs
+                </span>
               </DropdownMenuItem>
+
               <DropdownMenuItem
-                className="cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:bg-blue-50 dark:hover:text-blue-200 dark:hover:bg-blue-950/50 transition-colors"
+                className="cursor-pointer group focus:bg-green-50 dark:focus:bg-green-950/50 hover:bg-green-50 dark:hover:bg-green-950/50 transition-colors"
                 onClick={handleRedeployClick}
                 disabled={isRedeploying}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRedeploying ? 'animate-spin' : ''}`} />
-                {isRedeploying ? 'Redeploying...' : 'Redeploy'}
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300 ${isRedeploying ? 'animate-spin' : ''}`}
+                />
+                <span className="text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300">
+                  {isRedeploying ? 'Redeploying...' : 'Redeploy'}
+                </span>
               </DropdownMenuItem>
+
               <DropdownMenuItem
-                className="cursor-pointer text-red-600 dark:text-red-400 hover:text-red-800 hover:bg-red-50 dark:hover:text-red-200 dark:hover:bg-red-950/50 transition-colors"
+                className="cursor-pointer group focus:bg-red-50 dark:focus:bg-red-950/50 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
                 onClick={handleDeleteClick}
                 disabled={isDeleting}
               >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
+                <Trash className="h-4 w-4 mr-2 text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300" />
+                <span className="text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300">
+                  Delete
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -995,22 +1005,30 @@ export const DeploymentItem = ({
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertDialogTitle className="flex items-center gap-3 text-red-900 dark:text-red-100 text-lg font-bold">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
               Delete Deployment
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this deployment? This action cannot be undone.
+            <AlertDialogDescription className="text-red-700 dark:text-red-300 text-base leading-relaxed ml-13">
+              Are you sure you want to delete this deployment? This action cannot be undone and will
+              permanently remove all associated data including logs and configuration.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3 pt-6">
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 px-6"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-600 dark:hover:bg-red-700 text-white border-red-600 hover:border-red-700 px-6 font-semibold"
             >
               {isDeleting ? (
                 <>
@@ -1020,7 +1038,7 @@ export const DeploymentItem = ({
               ) : (
                 <>
                   <Trash className="h-4 w-4 mr-2" />
-                  Delete
+                  Delete Deployment
                 </>
               )}
             </AlertDialogAction>
@@ -1036,22 +1054,31 @@ export const DeploymentItem = ({
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-lime-50 dark:from-green-950/50 dark:to-lime-950/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-blue-500" />
-              Redeploy
+            <AlertDialogTitle className="flex items-center gap-3 text-green-900 dark:text-green-100 text-lg font-bold">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                <RefreshCw className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              Redeploy Service
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to redeploy this service? This will create a new deployment.
+            <AlertDialogDescription className="text-green-700 dark:text-green-300 text-base leading-relaxed ml-13">
+              Are you sure you want to redeploy this service? This will create a new deployment
+              using the latest configuration and may temporarily interrupt the service during the
+              process.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isRedeploying}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3 pt-6">
+            <AlertDialogCancel
+              disabled={isRedeploying}
+              className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 px-6"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRedeploy}
               disabled={isRedeploying}
-              className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
+              className="bg-green-600 hover:bg-green-700 focus:ring-green-500 dark:bg-green-600 dark:hover:bg-green-700 text-white border-green-600 hover:border-green-700 px-6 font-semibold"
             >
               {isRedeploying ? (
                 <>
@@ -1061,7 +1088,7 @@ export const DeploymentItem = ({
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Redeploy
+                  Start Redeploy
                 </>
               )}
             </AlertDialogAction>
