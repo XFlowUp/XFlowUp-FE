@@ -17,6 +17,7 @@ import {
   Code2,
   FileText,
   AlertTriangle,
+  Copy,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -632,15 +633,27 @@ export const DeploymentItemDetail = ({
 
                         <div className="flex items-start space-x-4">
                           <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
-                            <GitBranch className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                            <GitBranch className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                               Deployment ID
                             </span>
-                            <p className="text-base font-mono font-semibold text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-md">
-                              {deploymentDetail.id}
-                            </p>
+                            <div className="mt-1">
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(deploymentDetail.id);
+                                  toast.success('Deployment ID copied to clipboard');
+                                }}
+                                className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                                title="Copy deployment ID"
+                              >
+                                <span className="truncate max-w-[300px] block">
+                                  {deploymentDetail.id}
+                                </span>
+                                <Copy className="h-4 w-4 ml-2 flex-shrink-0" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 

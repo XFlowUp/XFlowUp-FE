@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GitBranch, SaveIcon } from 'lucide-react';
+import { ExternalLink, GitBranch, SaveIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { IoLogoGithub } from '@react-icons/all-files/io/IoLogoGithub';
 import { useEnvironment } from '../../../EnvironmentContext';
@@ -160,6 +160,17 @@ export const SourceSection: React.FC<SourceSectionProps> = ({ serviceId }) => {
                 : 'Not connected'}
             </span>
           </div>
+          {githubServiceInfo && (
+            <a
+              href={`https://github.com/${githubServiceInfo.owner}/${githubServiceInfo.name}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Repo
+            </a>
+          )}
         </div>
         <div className="mt-2">
           <a
