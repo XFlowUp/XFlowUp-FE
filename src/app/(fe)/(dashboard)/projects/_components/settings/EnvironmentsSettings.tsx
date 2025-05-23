@@ -410,7 +410,7 @@ export default function EnvironmentsSettings({ projectSlug }: EnvironmentsSettin
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             </div>
           ) : environmentVariables.length > 0 ? (
-            <div className="border rounded-md overflow-hidden mb-6 max-w-[60%]">
+            <div className="border rounded-md overflow-visible mb-6 max-w-[60%]">
               <div className="bg-gray-50 dark:bg-gray-900/60 px-4 py-3 border-b grid grid-cols-12 gap-4">
                 <div className="col-span-5 font-medium text-sm text-gray-500">KEY</div>
                 <div className="col-span-5 font-medium text-sm text-gray-500">VALUE</div>
@@ -418,7 +418,7 @@ export default function EnvironmentsSettings({ projectSlug }: EnvironmentsSettin
                   ACTIONS
                 </div>
               </div>
-              <div className="divide-y">
+              <div className="divide-y max-h-96 overflow-y-auto">
                 {environmentVariables.map((variable, index) => (
                   <div
                     key={variable.id || index}
