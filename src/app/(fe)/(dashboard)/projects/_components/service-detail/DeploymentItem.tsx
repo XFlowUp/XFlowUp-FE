@@ -56,6 +56,7 @@ export interface BasicDeploymentInfo {
   commitHash?: string | null;
   branch?: string | null;
   commiterAvatar?: string | null;
+  title?: string | null;
 }
 
 export interface DeploymentItemProps {
@@ -70,6 +71,7 @@ interface DeploymentItemDetailProps {
   onClose: () => void;
   defaultTab?: string;
   renderSourceIcon: () => React.ReactNode;
+  basicInfo: BasicDeploymentInfo;
 }
 
 const formatDeploymentTime = (date: Date | string) => {
@@ -216,6 +218,7 @@ export const DeploymentItemDetail = ({
   onClose,
   defaultTab = 'details',
   renderSourceIcon,
+  basicInfo,
 }: DeploymentItemDetailProps) => {
   // Only call API when detail panel is opened
   const { data: deploymentDetailData, loading, error } = useDeploymentById(deploymentId, true);
@@ -383,7 +386,7 @@ export const DeploymentItemDetail = ({
               <div className="flex items-center space-x-4">
                 {renderSourceIcon()}
                 <h1 className="text-[28px] font-semibold">
-                  {deploymentDetail.environmentName}
+                  {basicInfo.title}
                   {commitDisplay && (
                     <span className="text-lg font-normal text-gray-500 ml-2">
                       / {commitDisplay}
@@ -877,6 +880,7 @@ export const DeploymentItem = ({
               onClose={handleCloseDetail}
               defaultTab={activeTab}
               renderSourceIcon={renderSourceIcon}
+              basicInfo={basicInfo}
             />
           </>
         )}

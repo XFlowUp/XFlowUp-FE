@@ -297,6 +297,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
                 commitHash: deployment.commitHash,
                 branch: deployment.branch,
                 commiterAvatar: deployment.commiterAvatar,
+                title: service?.title,
               }}
               renderSourceIcon={renderSourceIcon}
             />
