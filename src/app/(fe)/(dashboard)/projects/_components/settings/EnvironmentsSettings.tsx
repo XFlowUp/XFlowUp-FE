@@ -638,12 +638,21 @@ export default function EnvironmentsSettings({ projectSlug }: EnvironmentsSettin
             </p>
             <div className="space-y-2">
               <Label htmlFor="env-import">Environment Variables (.env format)</Label>
-              <Textarea
+              <textarea
                 id="env-import"
                 placeholder="KEY=value"
                 value={bulkEnvText}
                 onChange={e => setBulkEnvText(e.target.value)}
-                className="font-mono h-40 resize-none"
+                className="font-mono w-full h-64 min-h-[200px] max-h-[500px] resize-y text-sm leading-5 border border-gray-300 dark:border-gray-600 rounded-md p-3 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800/30"
+                style={{
+                  whiteSpace: 'pre',
+                  overflowX: 'scroll',
+                  overflowY: 'scroll',
+                  wordBreak: 'normal',
+                  overflowWrap: 'normal',
+                  minWidth: '100%',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
           </div>
