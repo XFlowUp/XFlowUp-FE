@@ -26,26 +26,24 @@ const GET_DEPLOYMENTS_HISTORY = gql(`
 
 const GET_DEPLOYMENT_BY_ID = gql(`
   query Deployment($deploymentId: String!) {
-  deployment(id: $deploymentId) {
-    ... on DeploymentInfoResultSuccess {
-      status
-      deployment {
-        id
-        serviceType
+    deployment(id: $deploymentId) {
+      ... on DeploymentInfoResultSuccess {
         status
-        createdAt
-        url
-        environmentName
-        buildLogId
-        deployLogId
+        deployment {
+          id
+          serviceType
+          status
+          createdAt
+          url
+          environmentName
+        }
+      }
+      ... on DeploymentInfoResultError {
+        status
+        message
       }
     }
-    ... on DeploymentInfoResultError {
-      status
-      message
-    }
   }
-}
 `);
 
 export default function useDeploymentsHistory(

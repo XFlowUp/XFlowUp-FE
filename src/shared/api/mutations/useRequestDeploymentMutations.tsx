@@ -19,6 +19,20 @@ const REQUEST_DEPLOYMENT = gql(`
     }
 `);
 
+const DELETE_DEPLOYMENT = gql(`
+  mutation DeleteDeployment($deleteDeploymentId: String!) {
+  deleteDeployment(id: $deleteDeploymentId) {
+    ... on DeploymentDeleteSuccessResult {
+      status
+    }
+    ... on DeploymentDeleteErrorResult {
+      status
+      message
+    }
+  }
+}
+`);
+
 export function useRequestDeployment(
   projectSlug: string,
   serviceId: number,
@@ -30,6 +44,15 @@ export function useRequestDeployment(
       projectSlug,
       serviceId,
       environmentId,
+    },
+  });
+}
+
+export function useDeleteDeployment(deploymentId: string) {
+  return useMutation(DELETE_DEPLOYMENT, {
+    fetchPolicy: 'network-only',
+    variables: {
+      deleteDeploymentId: deploymentId,
     },
   });
 }

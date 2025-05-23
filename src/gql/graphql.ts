@@ -384,9 +384,7 @@ export type DeploymentHistorySuccessResult = {
 
 export type DeploymentInfo = {
   __typename?: 'DeploymentInfo';
-  buildLogId?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  deployLogId?: Maybe<Scalars['String']['output']>;
   environmentName: Scalars['String']['output'];
   id: Scalars['String']['output'];
   serviceType: Scalars['String']['output'];
@@ -964,6 +962,8 @@ export type Query = {
   environment_values: GetEnvironmentValuesResult;
   /** Get all environments in a project */
   environments: GetEnvironmentsResult;
+  getBuildLogStream: Scalars['String']['output'];
+  getDeployLogStream: Scalars['String']['output'];
   /** Get service settings */
   getServiceSettings: GetServiceSettingsResult;
   /** Get all services for a project */
@@ -1016,6 +1016,14 @@ export type QueryEnvironment_ValuesArgs = {
 
 export type QueryEnvironmentsArgs = {
   project_slug: Scalars['String']['input'];
+};
+
+export type QueryGetBuildLogStreamArgs = {
+  buildLogId: Scalars['String']['input'];
+};
+
+export type QueryGetDeployLogStreamArgs = {
+  deploymentId: Scalars['String']['input'];
 };
 
 export type QueryGetServiceSettingsArgs = {
@@ -1167,7 +1175,7 @@ export type Subscription = {
 };
 
 export type SubscriptionLiveTailArgs = {
-  logStreamName: Scalars['String']['input'];
+  buildLogId: Scalars['String']['input'];
 };
 
 export type SubscriptionPaymentStatusArgs = {
@@ -1370,6 +1378,17 @@ export type RequestDeploymentMutation = {
       };
 };
 
+export type DeleteDeploymentMutationVariables = Exact<{
+  deleteDeploymentId: Scalars['String']['input'];
+}>;
+
+export type DeleteDeploymentMutation = {
+  __typename?: 'Mutation';
+  deleteDeployment:
+    | { __typename?: 'DeploymentDeleteErrorResult'; status: Status; message?: string | null }
+    | { __typename?: 'DeploymentDeleteSuccessResult'; status: Status };
+};
+
 export type CreateServiceMutationMutationVariables = Exact<{
   input: CreateNewServiceInput;
 }>;
@@ -1517,8 +1536,6 @@ export type DeploymentQuery = {
           createdAt: string;
           url?: string | null;
           environmentName: string;
-          buildLogId?: string | null;
-          deployLogId?: string | null;
         };
       };
 };
@@ -1598,6 +1615,18 @@ export type EnvironmentsQueryQuery = {
         environments: Array<{ __typename?: 'EnvironmentElement'; id: string; name: string }>;
       };
 };
+
+export type GetBuildLogStreamQueryVariables = Exact<{
+  buildLogId: Scalars['String']['input'];
+}>;
+
+export type GetBuildLogStreamQuery = { __typename?: 'Query'; getBuildLogStream: string };
+
+export type GetDeployLogStreamQueryVariables = Exact<{
+  deploymentId: Scalars['String']['input'];
+}>;
+
+export type GetDeployLogStreamQuery = { __typename?: 'Query'; getDeployLogStream: string };
 
 export type ProjectsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
@@ -2448,6 +2477,72 @@ export const RequestDeploymentDocument = {
     },
   ],
 } as unknown as DocumentNode<RequestDeploymentMutation, RequestDeploymentMutationVariables>;
+export const DeleteDeploymentDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteDeployment' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'deleteDeploymentId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteDeployment' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'deleteDeploymentId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentDeleteSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'DeploymentDeleteErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteDeploymentMutation, DeleteDeploymentMutationVariables>;
 export const CreateServiceMutationDocument = {
   kind: 'Document',
   definitions: [
@@ -3156,8 +3251,6 @@ export const DeploymentDocument = {
                             { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'url' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'environmentName' } },
-                            { kind: 'Field', name: { kind: 'Name', value: 'buildLogId' } },
-                            { kind: 'Field', name: { kind: 'Name', value: 'deployLogId' } },
                           ],
                         },
                       },
@@ -3518,6 +3611,78 @@ export const EnvironmentsQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<EnvironmentsQueryQuery, EnvironmentsQueryQueryVariables>;
+export const GetBuildLogStreamDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetBuildLogStream' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'buildLogId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getBuildLogStream' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'buildLogId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'buildLogId' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetBuildLogStreamQuery, GetBuildLogStreamQueryVariables>;
+export const GetDeployLogStreamDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetDeployLogStream' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'deploymentId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getDeployLogStream' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'deploymentId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'deploymentId' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetDeployLogStreamQuery, GetDeployLogStreamQueryVariables>;
 export const ProjectsQueryDocument = {
   kind: 'Document',
   definitions: [

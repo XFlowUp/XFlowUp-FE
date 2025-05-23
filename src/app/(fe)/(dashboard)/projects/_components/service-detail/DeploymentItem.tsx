@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   CheckCircle,
@@ -16,6 +16,7 @@ import {
   Activity,
   Code2,
   FileText,
+  AlertTriangle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,16 +26,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Deploy_Status, Service_Type_Enum } from '@/gql/graphql';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useDeploymentById } from '@/shared/api/queries/useDeploymentsHistory';
+import {
+  useDeleteDeployment,
+  useRequestDeployment,
+} from '@/shared/api/mutations/useRequestDeploymentMutations';
+import { useGetBuildLogStream, useGetDeployLogStream } from '@/shared/api/queries/useLogStream';
+import { toast } from 'sonner';
 
-// Status badge variants
 export type DeploymentStatus = 'active' | 'deploying' | 'failed';
 
-// Map API status to UI status
 export const mapApiStatusToUiStatus = (status: Deploy_Status): DeploymentStatus => {
   switch (status) {
     case Deploy_Status.Success:
@@ -47,8 +62,6 @@ export const mapApiStatusToUiStatus = (status: Deploy_Status): DeploymentStatus 
       return 'failed';
   }
 };
-
-// Basic deployment info from history list
 export interface BasicDeploymentInfo {
   id: string;
   status: Deploy_Status;
@@ -63,9 +76,10 @@ export interface DeploymentItemProps {
   deploymentId: string;
   basicInfo: BasicDeploymentInfo;
   renderSourceIcon: () => React.ReactNode;
+  projectSlug: string;
+  serviceId: number;
+  environmentId: number;
 }
-
-// DeploymentItemDetail component
 interface DeploymentItemDetailProps {
   deploymentId: string;
   onClose: () => void;
@@ -99,7 +113,99 @@ const getNameService = (source: string) => {
   }
 };
 
-// Skeleton component for consistent loading
+const LogTerminal = ({
+  logData,
+  loading,
+  error,
+  title,
+  icon,
+  logId,
+}: {
+  logData?: string;
+  loading: boolean;
+  error?: Error;
+  title: string;
+  icon: React.ReactNode;
+  logId?: string;
+}) => {
+  const logContainerRef = useRef<HTMLDivElement>(null);
+  const logLines = logData ? logData.split('\n').filter(line => line.trim() !== '') : [];
+
+  // Auto-scroll to bottom when new logs arrive
+  useEffect(() => {
+    if (logContainerRef.current && logLines.length > 0) {
+      const container = logContainerRef.current;
+      // Delay scroll to ensure DOM is updated
+      setTimeout(() => {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth',
+        });
+      }, 100);
+    }
+  }, [logLines.length, logData]);
+
+  return (
+    <div
+      className="bg-gray-950 text-gray-300 p-6 rounded-lg font-mono text-sm h-full overflow-auto border border-gray-800 shadow-inner"
+      ref={logContainerRef}
+    >
+      <div className="flex items-center mb-4 text-gray-400">
+        {icon}
+        <span className="font-semibold">{title}</span>
+        {logId && <span className="ml-2 text-xs bg-gray-800 px-2 py-1 rounded">ID: {logId}</span>}
+      </div>
+
+      <div className="pb-4">
+        {loading && logLines.length === 0 && (
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+            <p className="opacity-60">$ Loading logs...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4">
+            <p className="text-red-400">$ Error loading logs:</p>
+            <p className="text-red-300 ml-2">{error.message}</p>
+          </div>
+        )}
+
+        {logLines.length > 0 ? (
+          <div className="space-y-1">
+            {logLines.map((line, index) => (
+              <div key={index} className="leading-relaxed break-words">
+                {line.startsWith('[') ? (
+                  <span className="text-blue-400">{line}</span>
+                ) : line.includes('FAILED') || line.includes('ERROR') ? (
+                  <span className="text-red-400">{line}</span>
+                ) : line.includes('SUCCESS') || line.includes('COMPLETED') ? (
+                  <span className="text-green-400">{line}</span>
+                ) : line.includes('attempt') ? (
+                  <span className="text-yellow-400">{line}</span>
+                ) : line.includes('PASSED') || line.includes('live') ? (
+                  <span className="text-green-300">{line}</span>
+                ) : (
+                  <span className="text-gray-300">{line}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          !loading && !error && <p className="opacity-60">$ No logs available yet...</p>
+        )}
+
+        {loading && logLines.length > 0 && (
+          <div className="flex items-center space-x-2 mt-4 pt-2 border-t border-gray-800 sticky bottom-0 bg-gray-950">
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent"></div>
+            <p className="opacity-60 text-xs">Streaming live logs...</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const DeploymentDetailSkeleton = ({
   onClose,
   renderSourceIcon,
@@ -109,7 +215,6 @@ const DeploymentDetailSkeleton = ({
 }) => {
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl rounded-l-lg">
-      {/* Header without tabs during loading */}
       <div className="px-6 md:px-12 pt-8 md:pt-12 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between w-full mb-6">
           <div className="flex items-center space-x-4">
@@ -139,10 +244,8 @@ const DeploymentDetailSkeleton = ({
         </div>
       </div>
 
-      {/* Content Skeleton */}
       <div className="px-6 md:px-12 py-6 flex-grow overflow-auto">
         <div className="space-y-6">
-          {/* Overview Section Skeleton */}
           <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-6" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -171,7 +274,6 @@ const DeploymentDetailSkeleton = ({
             </div>
           </div>
 
-          {/* Log Information Skeleton */}
           <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +289,6 @@ const DeploymentDetailSkeleton = ({
             </div>
           </div>
 
-          {/* Additional sections skeleton */}
           <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div className="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
             <div className="space-y-3">
@@ -201,7 +302,6 @@ const DeploymentDetailSkeleton = ({
           </div>
         </div>
 
-        {/* Loading message at bottom */}
         <div className="flex items-center justify-center py-8 mt-8">
           <div className="flex items-center space-x-3">
             <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
@@ -220,8 +320,18 @@ export const DeploymentItemDetail = ({
   renderSourceIcon,
   basicInfo,
 }: DeploymentItemDetailProps) => {
-  // Only call API when detail panel is opened
   const { data: deploymentDetailData, loading, error } = useDeploymentById(deploymentId, true);
+
+  const {
+    data: buildLogData,
+    loading: buildLogLoading,
+    error: buildLogError,
+  } = useGetBuildLogStream(deploymentId);
+  const {
+    data: deployLogData,
+    loading: deployLogLoading,
+    error: deployLogError,
+  } = useGetDeployLogStream(deploymentId);
 
   const deploymentDetail =
     deploymentDetailData?.deployment?.__typename === 'DeploymentInfoResultSuccess'
@@ -293,7 +403,6 @@ export const DeploymentItemDetail = ({
     },
   };
 
-  // Show skeleton loading if no data yet
   if (loading || !deploymentDetail) {
     return (
       <motion.div
@@ -363,7 +472,6 @@ export const DeploymentItemDetail = ({
   const status = mapApiStatusToUiStatus(deploymentDetail.status);
   const config = statusConfig[status];
 
-  // Extract commit hash if present in deployment data
   const commitDisplay = deploymentDetail.id ? deploymentDetail.id.substring(0, 8) : '';
 
   return (
@@ -380,7 +488,6 @@ export const DeploymentItemDetail = ({
         style={{ zIndex: 60 }}
       >
         <Tabs defaultValue={defaultTab} className="w-full h-full flex flex-col">
-          {/* Header matching ServiceDetailPanel */}
           <div className="px-6 md:px-12 pt-8 md:pt-12 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className="flex items-center justify-between w-full mb-6">
               <div className="flex items-center space-x-4">
@@ -417,7 +524,7 @@ export const DeploymentItemDetail = ({
                   variant="outline"
                   size="sm"
                   className="h-9 px-4 text-sm font-medium border-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950 transition-all duration-200"
-                  onClick={() => window.open(deploymentDetail.url!, '_blank')}
+                  onClick={() => window.open('http://' + deploymentDetail.url!, '_blank')}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Visit Live Site
@@ -548,13 +655,15 @@ export const DeploymentItemDetail = ({
                               </span>
                               <div className="mt-1">
                                 <a
-                                  href={deploymentDetail.url}
+                                  href={'http://' + deploymentDetail.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
                                 >
-                                  {deploymentDetail.url.replace(/^https?:\/\//, '')}
-                                  <ExternalLink className="h-4 w-4 ml-2" />
+                                  <span className="truncate max-w-[300px] block">
+                                    {deploymentDetail.url}
+                                  </span>
+                                  <ExternalLink className="h-4 w-4 ml-2 flex-shrink-0" />
                                 </a>
                               </div>
                             </div>
@@ -565,14 +674,14 @@ export const DeploymentItemDetail = ({
                   </div>
 
                   {/* Log Information */}
-                  {(deploymentDetail.buildLogId || deploymentDetail.deployLogId) && (
+                  {deploymentDetail.id && (
                     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
                       <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900 dark:text-gray-100">
                         <Calendar className="h-5 w-5 mr-3 text-gray-600 dark:text-gray-400" />
                         Log Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {deploymentDetail.buildLogId && (
+                        {deploymentDetail.id && (
                           <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center mb-2">
                               <Code2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
@@ -581,11 +690,11 @@ export const DeploymentItemDetail = ({
                               </span>
                             </div>
                             <p className="font-mono text-sm text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-3 py-2 rounded border">
-                              {deploymentDetail.buildLogId}
+                              {deploymentDetail.id}
                             </p>
                           </div>
                         )}
-                        {deploymentDetail.deployLogId && (
+                        {deploymentDetail.id && (
                           <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-lg p-4 border border-green-200 dark:border-green-800">
                             <div className="flex items-center mb-2">
                               <Activity className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
@@ -594,7 +703,7 @@ export const DeploymentItemDetail = ({
                               </span>
                             </div>
                             <p className="font-mono text-sm text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-3 py-2 rounded border">
-                              {deploymentDetail.deployLogId}
+                              {deploymentDetail.id}
                             </p>
                           </div>
                         )}
@@ -607,66 +716,27 @@ export const DeploymentItemDetail = ({
 
             <TabsContent value="buildLogs" className="h-full flex flex-col px-6 md:px-12 py-6">
               <div className="flex-grow overflow-auto h-full pr-4">
-                <div className="bg-gray-950 text-gray-300 p-6 rounded-lg font-mono text-sm h-full overflow-auto border border-gray-800 shadow-inner">
-                  <div className="flex items-center mb-4 text-gray-400">
-                    <Code2 className="h-5 w-5 mr-2" />
-                    <span className="font-semibold">Build Logs</span>
-                    {deploymentDetail.buildLogId && (
-                      <span className="ml-2 text-xs bg-gray-800 px-2 py-1 rounded">
-                        ID: {deploymentDetail.buildLogId}
-                      </span>
-                    )}
-                  </div>
-                  {deploymentDetail.buildLogId ? (
-                    <>
-                      <p className="opacity-60">
-                        $ Loading build logs for ID: {deploymentDetail.buildLogId}
-                      </p>
-                      <p className="text-yellow-400">Build logs will be implemented here...</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="opacity-60">$ Starting build process...</p>
-                      <p>Cloning repository...</p>
-                      <p>Installing dependencies...</p>
-                      <p>Running build script...</p>
-                      <p className="text-green-400">Build completed successfully.</p>
-                    </>
-                  )}
-                </div>
+                <LogTerminal
+                  logData={buildLogData?.getBuildLogStream}
+                  loading={buildLogLoading}
+                  error={buildLogError}
+                  title="Build Logs"
+                  icon={<Code2 className="h-5 w-5 mr-2" />}
+                  logId={deploymentDetail?.id}
+                />
               </div>
             </TabsContent>
 
             <TabsContent value="deployLogs" className="h-full flex flex-col px-6 md:px-12 py-6">
               <div className="flex-grow overflow-auto h-full pr-4">
-                <div className="bg-gray-950 text-gray-300 p-6 rounded-lg font-mono text-sm h-full overflow-auto border border-gray-800 shadow-inner">
-                  <div className="flex items-center mb-4 text-gray-400">
-                    <Activity className="h-5 w-5 mr-2" />
-                    <span className="font-semibold">Deploy Logs</span>
-                    {deploymentDetail.deployLogId && (
-                      <span className="ml-2 text-xs bg-gray-800 px-2 py-1 rounded">
-                        ID: {deploymentDetail.deployLogId}
-                      </span>
-                    )}
-                  </div>
-                  {deploymentDetail.deployLogId ? (
-                    <>
-                      <p className="opacity-60">
-                        $ Loading deploy logs for ID: {deploymentDetail.deployLogId}
-                      </p>
-                      <p className="text-yellow-400">Deploy logs will be implemented here...</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="opacity-60">$ Starting deployment process...</p>
-                      <p>Preparing deployment packages...</p>
-                      <p>Uploading artifacts...</p>
-                      <p>Configuring environment...</p>
-                      <p>Starting service...</p>
-                      <p className="text-green-400">Deployment completed successfully.</p>
-                    </>
-                  )}
-                </div>
+                <LogTerminal
+                  logData={deployLogData?.getDeployLogStream}
+                  loading={deployLogLoading}
+                  error={deployLogError}
+                  title="Deploy Logs"
+                  icon={<Activity className="h-5 w-5 mr-2" />}
+                  logId={deploymentDetail?.id}
+                />
               </div>
             </TabsContent>
           </div>
@@ -680,11 +750,20 @@ export const DeploymentItem = ({
   deploymentId,
   basicInfo,
   renderSourceIcon,
+  projectSlug,
+  serviceId,
+  environmentId,
 }: DeploymentItemProps) => {
   const [showDetail, setShowDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('details');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRedeploying, setIsRedeploying] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRedeployDialog, setShowRedeployDialog] = useState(false);
 
-  // Use basic info from deployment history instead of calling API
+  const [deleteDeployment] = useDeleteDeployment(deploymentId);
+  const [requestDeployment] = useRequestDeployment(projectSlug, serviceId, environmentId);
+
   const status = mapApiStatusToUiStatus(basicInfo.status);
 
   const statusConfig = {
@@ -742,6 +821,60 @@ export const DeploymentItem = ({
     setShowDetail(false);
   };
 
+  const handleDelete = async () => {
+    if (isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+      const { data } = await deleteDeployment();
+
+      if (data?.deleteDeployment.__typename === 'DeploymentDeleteSuccessResult') {
+        toast.success('Deployment deleted successfully');
+        setShowDeleteDialog(false);
+      } else if (data?.deleteDeployment.__typename === 'DeploymentDeleteErrorResult') {
+        toast.error(data.deleteDeployment.message || 'Failed to delete deployment');
+      }
+    } catch (error) {
+      toast.error('An error occurred while deleting the deployment');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleRedeploy = async () => {
+    if (isRedeploying) return;
+
+    try {
+      setIsRedeploying(true);
+      const { data } = await requestDeployment();
+
+      if (data?.request_deployment.__typename === 'DeploymentRequestSuccessResult') {
+        toast.success('Deployment requested successfully');
+        setShowRedeployDialog(false);
+      } else {
+        toast.error(data?.request_deployment.message || 'Failed to request deployment');
+      }
+    } catch (error) {
+      toast.error('An error occurred while requesting deployment');
+    } finally {
+      setIsRedeploying(false);
+    }
+  };
+
+  const handleDeleteClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setShowDeleteDialog(true);
+  };
+
+  const handleRedeployClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setShowRedeployDialog(true);
+  };
+
   const serviceDetailVariants = {
     initial: {
       opacity: 1,
@@ -775,7 +908,6 @@ export const DeploymentItem = ({
     },
   };
 
-  // Create display info from basic deployment info
   const commitDisplay = basicInfo.commitHash ? basicInfo.commitHash.substring(0, 6) : '';
   const environmentName = basicInfo.branch || 'Production';
 
@@ -814,7 +946,7 @@ export const DeploymentItem = ({
           >
             View logs
           </Button>
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -826,20 +958,27 @@ export const DeploymentItem = ({
                 <span className="sr-only">Actions</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="cursor-pointer" onClick={handleViewLogs}>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-blue-300 dark:hover:bg-blue-950/50 transition-colors"
+                onClick={handleViewLogs}
+              >
                 <PlayCircle className="h-4 w-4 mr-2" />
                 View logs
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Restart
+              <DropdownMenuItem
+                className="cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:bg-blue-50 dark:hover:text-blue-200 dark:hover:bg-blue-950/50 transition-colors"
+                onClick={handleRedeployClick}
+                disabled={isRedeploying}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRedeploying ? 'animate-spin' : ''}`} />
+                {isRedeploying ? 'Redeploying...' : 'Redeploy'}
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Redeploy
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-red-600 dark:text-red-400">
+              <DropdownMenuItem
+                className="cursor-pointer text-red-600 dark:text-red-400 hover:text-red-800 hover:bg-red-50 dark:hover:text-red-200 dark:hover:bg-red-950/50 transition-colors"
+                onClick={handleDeleteClick}
+                disabled={isDeleting}
+              >
                 <Trash className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>
@@ -847,6 +986,88 @@ export const DeploymentItem = ({
           </DropdownMenu>
         </div>
       </div>
+
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={open => {
+          if (!isDeleting) {
+            setShowDeleteDialog(open);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Delete Deployment
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this deployment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash className="h-4 w-4 mr-2" />
+                  Delete
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showRedeployDialog}
+        onOpenChange={open => {
+          if (!isRedeploying) {
+            setShowRedeployDialog(open);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-blue-500" />
+              Redeploy
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to redeploy this service? This will create a new deployment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRedeploying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRedeploy}
+              disabled={isRedeploying}
+              className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
+            >
+              {isRedeploying ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Redeploying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Redeploy
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AnimatePresence mode="sync">
         {showDetail && (

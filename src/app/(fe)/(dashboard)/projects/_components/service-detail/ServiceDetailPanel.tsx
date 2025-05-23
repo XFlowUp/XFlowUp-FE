@@ -16,7 +16,6 @@ import { useRequestDeployment } from '@/shared/api/mutations/useRequestDeploymen
 import { useEnvironment } from '../EnvironmentContext';
 
 import DeploymentItem from './DeploymentItem';
-import VariablesSection from './VariablesSection';
 import MetricsSection from './MetricsSection';
 import SettingsSection from './SettingsSection';
 
@@ -300,6 +299,9 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
                 title: service?.title,
               }}
               renderSourceIcon={renderSourceIcon}
+              projectSlug={projectSlug}
+              serviceId={serviceId}
+              environmentId={parseInt(selectedEnvironmentId || '0')}
             />
           </motion.div>
         ))}
@@ -348,7 +350,6 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
 
               <TabsList className="mb-4 dark:bg-gray-900/50">
                 <TabsTrigger value="deployments">Deployments</TabsTrigger>
-                <TabsTrigger value="variables">Variables</TabsTrigger>
                 <TabsTrigger value="metrics">Metrics</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
@@ -359,10 +360,6 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
                 <div className="flex-grow overflow-auto h-full pr-4">
                   {renderDeploymentsContent()}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="variables" className="space-y-4 px-6 md:px-12 py-6">
-                <VariablesSection />
               </TabsContent>
 
               <TabsContent value="metrics" className="space-y-4 px-6 md:px-12 py-6">
