@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { useBalance } from '@/shared/api/queries/useUserInfo';
 import { TopUpDialog } from '@/components/ui/top-up-dialog';
 import { useAuthStore } from '@/shared/stores/auth';
-import { useClickOutside } from '@/shared/hooks/useClickOutside';
 
 export default function PlanHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,12 +15,6 @@ export default function PlanHeader() {
   const { user } = useAuthStore();
   const { data: balanceData, loading: balanceLoading } = useBalance();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(dropdownRef as React.RefObject<HTMLElement>, () => {
-    if (isOpen) {
-      setIsOpen(false);
-    }
-  });
 
   const balanceInfo = balanceData?.balance;
   const balance = balanceInfo && 'balance' in balanceInfo ? balanceInfo.balance : null;

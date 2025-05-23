@@ -24,6 +24,30 @@ const GET_DEPLOYMENTS_HISTORY = gql(`
     }
 `);
 
+const GET_DEPLOYMENT_BY_ID = gql(`
+  query Deployment($deploymentId: String!) {
+  deployment(id: $deploymentId) {
+    ... on DeploymentInfoResultSuccess {
+      status
+      deployment {
+        id
+        serviceType
+        status
+        createdAt
+        url
+        environmentName
+        buildLogId
+        deployLogId
+      }
+    }
+    ... on DeploymentInfoResultError {
+      status
+      message
+    }
+  }
+}
+`);
+
 export default function useDeploymentsHistory(
   projectSlug: string,
   serviceId: number,
@@ -38,6 +62,17 @@ export default function useDeploymentsHistory(
       perPage: perPage || 20,
       projectSlug,
       serviceId,
+    },
+    skip: !enabled,
+    pollInterval: 2000,
+  });
+}
+
+export function useDeploymentById(deploymentId: string, enabled?: boolean) {
+  return useQuery(GET_DEPLOYMENT_BY_ID, {
+    fetchPolicy: 'network-only',
+    variables: {
+      deploymentId,
     },
     skip: !enabled,
     pollInterval: 2000,

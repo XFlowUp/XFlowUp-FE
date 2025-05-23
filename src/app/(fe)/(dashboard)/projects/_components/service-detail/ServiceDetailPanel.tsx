@@ -15,7 +15,7 @@ import useDeploymentsHistory from '@/shared/api/queries/useDeploymentsHistory';
 import { useRequestDeployment } from '@/shared/api/mutations/useRequestDeploymentMutations';
 import { useEnvironment } from '../EnvironmentContext';
 
-import DeploymentItem, { mapApiStatusToUiStatus } from './DeploymentItem';
+import DeploymentItem from './DeploymentItem';
 import VariablesSection from './VariablesSection';
 import MetricsSection from './MetricsSection';
 import SettingsSection from './SettingsSection';
@@ -289,15 +289,16 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
             }}
           >
             <DeploymentItem
-              source={service?.source}
-              status={mapApiStatusToUiStatus(deployment.status)}
-              environment={deployment.branch || 'Unknown'}
-              timeInfo={deployment.createdAt}
-              commitHash={deployment.commitHash}
-              branch={deployment.branch}
-              avatar={deployment.commiterAvatar}
+              deploymentId={deployment.id}
+              basicInfo={{
+                id: deployment.id,
+                status: deployment.status,
+                createdAt: deployment.createdAt,
+                commitHash: deployment.commitHash,
+                branch: deployment.branch,
+                commiterAvatar: deployment.commiterAvatar,
+              }}
               renderSourceIcon={renderSourceIcon}
-              serviceName={service?.title || 'Unknown'}
             />
           </motion.div>
         ))}
