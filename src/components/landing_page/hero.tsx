@@ -1,8 +1,11 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { ScrollAnimation } from '../animations/scroll-animation';
+import { useRouter } from 'next/navigation';
 
 export default function Hero() {
+  const router = useRouter();
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
       <section className="container flex max-w-screen-2xl flex-col items-center justify-center space-y-8 py-24 text-center md:py-32">
@@ -19,7 +22,7 @@ export default function Hero() {
         </ScrollAnimation>
         <ScrollAnimation delay={0.2}>
           <div className="flex gap-4">
-            <Button size="lg">
+            <Button size="lg" onClick={() => router.push('/dashboard')}>
               Start Deploying
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

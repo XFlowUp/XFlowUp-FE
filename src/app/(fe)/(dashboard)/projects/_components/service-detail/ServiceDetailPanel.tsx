@@ -18,6 +18,7 @@ import { useEnvironment } from '../EnvironmentContext';
 import DeploymentItem from './DeploymentItem';
 import MetricsSection from './MetricsSection';
 import SettingsSection from './SettingsSection';
+import ReviewCodeSection from './components/ReviewCodeSection';
 
 interface ServiceDetailPanelProps {
   service: Record<string, any> | null;
@@ -350,6 +351,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
 
               <TabsList className="mb-4 dark:bg-gray-900/50">
                 <TabsTrigger value="deployments">Deployments</TabsTrigger>
+                <TabsTrigger value="review-code">Review Code</TabsTrigger>
                 <TabsTrigger value="metrics">Metrics</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
@@ -362,7 +364,11 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
                 </div>
               </TabsContent>
 
-              <TabsContent value="metrics" className="space-y-4 px-6 md:px-12 py-6">
+              <TabsContent value="review-code" className="h-full flex flex-col px-6 md:px-12 py-6">
+                <ReviewCodeSection />
+              </TabsContent>
+
+              <TabsContent value="metrics" className="h-full flex flex-col px-6 md:px-12 py-6">
                 <MetricsSection />
               </TabsContent>
 
