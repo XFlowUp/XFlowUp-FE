@@ -26,7 +26,7 @@ export default function Hero() {
               Start Deploying
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" onClick={() => router.push('/contact')}>
               Schedule a Demo
             </Button>
           </div>

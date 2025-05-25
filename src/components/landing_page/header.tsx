@@ -142,9 +142,9 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link href="/docs" legacyBehavior passHref>
+                  <Link href="/about" legacyBehavior passHref>
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Documentation
+                      About
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
@@ -152,6 +152,20 @@ export function Header() {
                   <Link href="/pricing" legacyBehavior passHref>
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                       Pricing
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/contact" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Contact
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/docs" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Docs
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
@@ -203,10 +217,34 @@ export function Header() {
               </div>
               <DrawerClose asChild>
                 <Link
+                  href="/about"
+                  className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  About
+                </Link>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Link
+                  href="/pricing"
+                  className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Pricing
+                </Link>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Link
+                  href="/contact"
+                  className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Contact
+                </Link>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Link
                   href="/docs"
                   className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Documentation
+                  Docs
                 </Link>
               </DrawerClose>
             </div>
