@@ -9,6 +9,7 @@ query GetServiceSettings($serviceId: Float!) {
         port
         use_ai_review
         domain
+        prompt
       }
     }
     ... on GetServiceSettingsErrorResult {

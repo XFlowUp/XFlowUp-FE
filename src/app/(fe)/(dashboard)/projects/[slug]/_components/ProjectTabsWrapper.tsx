@@ -6,8 +6,6 @@ import { MainNav } from '@/app/(fe)/(dashboard)/projects/_components/MainNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ArchitectureView from '@/app/(fe)/(dashboard)/projects/_components/ArchitectureView';
 import { UserDropdown } from '@/components/user-nav';
-import { Share } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import PlanHeader from '@/app/(fe)/(dashboard)/projects/_components/PlanHeader';
 import SettingsContent from '../../_components/SettingsContent';
 
@@ -17,8 +15,6 @@ interface ProjectTabsWrapperProps {
 
 const tabs = [
   { value: 'architecture', label: 'Architecture' },
-  { value: 'observability', label: 'Observability' },
-  { value: 'logs', label: 'Logs' },
   { value: 'settings', label: 'Settings' },
 ];
 
@@ -79,18 +75,6 @@ export default function ProjectTabsWrapper({ slug }: ProjectTabsWrapperProps) {
             className="h-full p-0 m-0 overflow-hidden data-[state=active]:block"
           >
             <ArchitectureView projectSlug={slug} />
-          </TabsContent>
-          <TabsContent
-            value="observability"
-            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
-          >
-            <div className="p-6">Observability content</div>
-          </TabsContent>
-          <TabsContent
-            value="logs"
-            className="p-0 m-0 h-full overflow-auto data-[state=active]:block"
-          >
-            <div className="p-6">Logs content</div>
           </TabsContent>
           <TabsContent
             value="settings"

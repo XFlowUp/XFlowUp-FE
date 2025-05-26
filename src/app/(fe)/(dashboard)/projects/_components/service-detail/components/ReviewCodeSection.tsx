@@ -3,18 +3,16 @@ import {
   X,
   CheckCircle,
   MoreVertical,
-  RefreshCw,
   ExternalLink,
-  Calendar,
   GitBranch,
-  User,
   Clock,
   AlertTriangle,
   Code2,
-  FileText,
   MessageSquare,
   GitPullRequest,
   Eye,
+  User,
+  GitCommit,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,25 +24,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
-
-// Enums và types
-export enum REVIEW_CODE_STATUS {
-  REVIEWING = 'REVIEWING',
-  NO_COMMENT = 'NO_COMMENT',
-  HAS_ISSUES = 'HAS_ISSUES',
-}
+import { useReviewLogs } from '@/shared/api/queries/useReviewLogs';
+import { ReviewCodeStatus } from '@/gql/graphql';
 
 export interface ReviewCodeLog {
-  id: string;
-  serviceId: number;
+  id: number;
   pull_request_id: string;
   pull_request_url: string;
   pull_request_title: string;
-  status: REVIEW_CODE_STATUS;
-  created_at: string | Date;
-  updated_at: string | Date;
+  status: ReviewCodeStatus;
+  commit_author_name: string;
+  commit_author_avatar: string;
+  commit_message: string;
+  commit_url: string;
+  review_comment: string;
+  created_at: string;
 }
-
 interface ReviewCodeItemProps {
   reviewLog: ReviewCodeLog;
   renderSourceIcon: () => React.ReactNode;
@@ -54,6 +49,10 @@ interface ReviewCodeDetailProps {
   reviewLog: ReviewCodeLog;
   onClose: () => void;
   renderSourceIcon: () => React.ReactNode;
+}
+
+interface ReviewCodeSectionProps {
+  serviceId: number;
 }
 
 // Helper functions
@@ -67,10 +66,29 @@ const formatDateTimeStandard = (date: Date | string) => {
   return format(dateObj, 'MMM d, yyyy h:mm a');
 };
 
+// Parse review comments từ string JSON
+const parseReviewComments = (commentString: string) => {
+  try {
+    const parsed = JSON.parse(commentString);
+    // Đảm bảo trả về array
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('Failed to parse review comments:', error);
+    return [];
+  }
+};
+
+// Type cho review comment
+interface ReviewComment {
+  body: string;
+  path: string;
+  line?: number;
+}
+
 // Status configurations
-const getStatusConfig = (status: REVIEW_CODE_STATUS) => {
+const getStatusConfig = (status: ReviewCodeStatus) => {
   switch (status) {
-    case REVIEW_CODE_STATUS.REVIEWING:
+    case ReviewCodeStatus.Reviewing:
       return {
         icon: (
           <div className="h-5 w-5 flex items-center justify-center">
@@ -83,7 +101,7 @@ const getStatusConfig = (status: REVIEW_CODE_STATUS) => {
         buttonClasses:
           'border-blue-200 text-blue-700 bg-blue-100 hover:bg-blue-200 hover:text-blue-800 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 dark:hover:text-blue-300',
       };
-    case REVIEW_CODE_STATUS.NO_COMMENT:
+    case ReviewCodeStatus.NoComment:
       return {
         icon: <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />,
         label: 'NO ISSUES',
@@ -93,7 +111,7 @@ const getStatusConfig = (status: REVIEW_CODE_STATUS) => {
         buttonClasses:
           'border-green-200 text-green-700 bg-green-100 hover:bg-green-200 hover:text-green-800 dark:border-green-800/50 dark:text-green-400 dark:bg-green-950/50 dark:hover:bg-green-900/50 dark:hover:text-green-300',
       };
-    case REVIEW_CODE_STATUS.HAS_ISSUES:
+    case ReviewCodeStatus.HasIssues:
       return {
         icon: (
           <div className="h-5 w-5 text-red-600 dark:text-red-500 flex items-center justify-center">
@@ -118,7 +136,6 @@ const getStatusConfig = (status: REVIEW_CODE_STATUS) => {
   }
 };
 
-// Review Code Detail Component
 const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDetailProps) => {
   const config = getStatusConfig(reviewLog.status);
 
@@ -159,10 +176,9 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
       style={{ marginTop: '80px' }}
     >
       <motion.div
-        className="absolute w-full h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl rounded-l-lg"
+        className="flex flex-col w-full h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl rounded-l-lg"
         style={{ zIndex: 60 }}
       >
-        {/* Header */}
         <div className="px-6 md:px-12 pt-8 md:pt-12 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between w-full mb-6">
             <div className="flex items-center space-x-4">
@@ -191,9 +207,9 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
             >
               <div
                 className={`w-2 h-2 rounded-full mr-2 ${
-                  reviewLog.status === REVIEW_CODE_STATUS.REVIEWING
+                  reviewLog.status === ReviewCodeStatus.Reviewing
                     ? 'bg-blue-500 animate-pulse'
-                    : reviewLog.status === REVIEW_CODE_STATUS.NO_COMMENT
+                    : reviewLog.status === ReviewCodeStatus.NoComment
                       ? 'bg-green-500'
                       : 'bg-red-500'
                 }`}
@@ -215,8 +231,8 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 md:px-12 py-6 flex-grow overflow-auto">
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-6 md:px-12 py-6">
           <div className="space-y-6">
             {/* Review Overview */}
             <div className={`border rounded-lg p-6 shadow-sm ${config.backgroundClasses}`}>
@@ -249,9 +265,9 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
                         Review Status
                       </span>
                       <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {reviewLog.status === REVIEW_CODE_STATUS.REVIEWING
+                        {reviewLog.status === ReviewCodeStatus.Reviewing
                           ? 'Under Review'
-                          : reviewLog.status === REVIEW_CODE_STATUS.NO_COMMENT
+                          : reviewLog.status === ReviewCodeStatus.NoComment
                             ? 'No Issues Found'
                             : 'Issues Detected'}
                       </p>
@@ -279,38 +295,53 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
                 <div className="space-y-6">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
-                      <FileText className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                      <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        Review ID
+                        Commit Author
                       </span>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {reviewLog.id}
-                      </p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <img
+                          src={reviewLog.commit_author_avatar}
+                          alt={reviewLog.commit_author_name}
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          {reviewLog.commit_author_name}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
-                      <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                      <GitCommit className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        Last Updated
+                        Commit Message
                       </span>
                       <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {formatReviewTime(reviewLog.updated_at)}
+                        {reviewLog.commit_message}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {formatDateTimeStandard(reviewLog.updated_at)}
-                      </p>
+                      <div className="mt-1">
+                        <a
+                          href={reviewLog.commit_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors text-sm"
+                        >
+                          View Commit
+                          <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
+                        </a>
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
-                      <ExternalLink className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      <ExternalLink className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -346,20 +377,87 @@ const ReviewCodeDetail = ({ reviewLog, onClose, renderSourceIcon }: ReviewCodeDe
                   </h4>
                   <p className="text-gray-700 dark:text-gray-300">{reviewLog.pull_request_title}</p>
                 </div>
+                {/* Review Comments */}
+                {reviewLog.review_comment &&
+                  parseReviewComments(reviewLog.review_comment).length > 0 && (
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
+                        <MessageSquare className="h-5 w-5 mr-2 text-red-600 dark:text-red-400" />
+                        Review Comments ({parseReviewComments(reviewLog.review_comment).length})
+                      </h4>
+                      <div className="space-y-3">
+                        {parseReviewComments(reviewLog.review_comment).map(
+                          (comment: ReviewComment, index: number) => (
+                            <div
+                              key={index}
+                              className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-red-200 dark:border-red-800/50 shadow-sm"
+                            >
+                              {/* File info header */}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <Code2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                  <span className="text-sm font-mono text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                                    {comment.path}
+                                  </span>
+                                </div>
+                                {comment.line && (
+                                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded font-medium">
+                                    Line {comment.line}
+                                  </span>
+                                )}
+                              </div>
 
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    Review Status Details
-                  </h4>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {reviewLog.status === REVIEW_CODE_STATUS.REVIEWING &&
-                      'This pull request is currently being reviewed by our automated code review system.'}
-                    {reviewLog.status === REVIEW_CODE_STATUS.NO_COMMENT &&
-                      'The code review has been completed successfully with no issues found.'}
-                    {reviewLog.status === REVIEW_CODE_STATUS.HAS_ISSUES &&
-                      'The code review has detected potential issues that require attention.'}
-                  </p>
-                </div>
+                              {/* Comment body */}
+                              <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-3 border-l-4 border-red-400 dark:border-red-500">
+                                <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed">
+                                  {comment.body}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+
+                      {/* Summary */}
+                      <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800/50">
+                        <p className="text-sm text-red-800 dark:text-red-300 font-medium">
+                          ⚠️ {parseReviewComments(reviewLog.review_comment).length} issue(s) found
+                          that need attention
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                {/* No comments case */}
+                {reviewLog.status === ReviewCodeStatus.NoComment && (
+                  <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 border border-green-200 dark:border-green-800/50">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
+                      <CheckCircle className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                      Code Review Results
+                    </h4>
+                    <div className="bg-white dark:bg-green-950/20 rounded-lg p-3 border border-green-200 dark:border-green-800/30">
+                      <p className="text-sm text-green-800 dark:text-green-300 font-medium">
+                        ✅ No issues found! The code looks good and follows best practices.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Reviewing status */}
+                {reviewLog.status === ReviewCodeStatus.Reviewing && (
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800/50">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
+                      <Clock className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400 animate-pulse" />
+                      Review In Progress
+                    </h4>
+                    <div className="bg-white dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800/30">
+                      <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                        🔄 This pull request is currently being reviewed by our automated code
+                        review system. Please wait for the review to complete.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -389,6 +487,39 @@ const ReviewCodeItem = ({ reviewLog, renderSourceIcon }: ReviewCodeItemProps) =>
     window.open(reviewLog.pull_request_url, '_blank');
   };
 
+  const serviceDetailVariants = {
+    initial: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      scale: 1,
+      zIndex: 50,
+    },
+    behind: {
+      opacity: 0.8,
+      x: -32,
+      y: 8,
+      scale: 0.98,
+      zIndex: 45,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: 0,
+      y: 0,
+      scale: 1,
+      zIndex: 45,
+      transition: {
+        duration: 0.2,
+        delay: 0.1,
+      },
+    },
+  };
+
   return (
     <>
       <div
@@ -409,10 +540,39 @@ const ReviewCodeItem = ({ reviewLog, renderSourceIcon }: ReviewCodeItemProps) =>
               <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                 {reviewLog.pull_request_title}
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                PR #{reviewLog.pull_request_id} • {formatReviewTime(reviewLog.created_at)}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Review ID: {reviewLog.id}</p>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>PR #{reviewLog.pull_request_id}</span>
+                <span>•</span>
+                <span>{formatReviewTime(reviewLog.created_at)}</span>
+                <span>•</span>
+                <div className="flex items-center space-x-1">
+                  <img
+                    src={reviewLog.commit_author_avatar}
+                    alt={reviewLog.commit_author_name}
+                    className="w-4 h-4 rounded-full"
+                  />
+                  <span className="text-xs">{reviewLog.commit_author_name}</span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 mt-1">
+                <p className="text-xs text-gray-500">Review ID: {reviewLog.id}</p>
+                {reviewLog.review_comment &&
+                  parseReviewComments(reviewLog.review_comment).length > 0 && (
+                    <span className="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
+                      {parseReviewComments(reviewLog.review_comment).length} issue(s)
+                    </span>
+                  )}
+                {reviewLog.status === ReviewCodeStatus.NoComment && (
+                  <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                    No issues
+                  </span>
+                )}
+                {reviewLog.status === ReviewCodeStatus.Reviewing && (
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full animate-pulse">
+                    In progress
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -476,6 +636,17 @@ const ReviewCodeItem = ({ reviewLog, renderSourceIcon }: ReviewCodeItemProps) =>
               onClick={handleCloseDetail}
             />
 
+            {/* Service Detail Clone (appearing behind) */}
+            <motion.div
+              key="servicedetail-clone"
+              initial="initial"
+              animate="behind"
+              exit="exit"
+              variants={serviceDetailVariants}
+              className="fixed right-0 top-0 bottom-0 w-2/3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg rounded-l-lg pointer-events-none"
+              style={{ marginTop: '80px' }}
+            />
+
             {/* Review Code Detail */}
             <ReviewCodeDetail
               key="review-detail"
@@ -490,67 +661,70 @@ const ReviewCodeItem = ({ reviewLog, renderSourceIcon }: ReviewCodeItemProps) =>
   );
 };
 
-// Sample data
-const sampleReviewLogs: ReviewCodeLog[] = [
-  {
-    id: 'rc_001',
-    serviceId: 1,
-    pull_request_id: '123',
-    pull_request_url: 'https://github.com/example/repo/pull/123',
-    pull_request_title: 'Fix authentication bug in user login flow',
-    status: REVIEW_CODE_STATUS.HAS_ISSUES,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    updated_at: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
-  },
-  {
-    id: 'rc_002',
-    serviceId: 1,
-    pull_request_id: '124',
-    pull_request_url: 'https://github.com/example/repo/pull/124',
-    pull_request_title: 'Add new feature for user profile management',
-    status: REVIEW_CODE_STATUS.REVIEWING,
-    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-    updated_at: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-  },
-  {
-    id: 'rc_003',
-    serviceId: 1,
-    pull_request_id: '125',
-    pull_request_url: 'https://github.com/example/repo/pull/125',
-    pull_request_title: 'Update dependencies and fix security vulnerabilities',
-    status: REVIEW_CODE_STATUS.NO_COMMENT,
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-  },
-  {
-    id: 'rc_004',
-    serviceId: 1,
-    pull_request_id: '126',
-    pull_request_url: 'https://github.com/example/repo/pull/126',
-    pull_request_title: 'Implement caching mechanism for API responses',
-    status: REVIEW_CODE_STATUS.REVIEWING,
-    created_at: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-    updated_at: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-  },
-  {
-    id: 'rc_005',
-    serviceId: 1,
-    pull_request_id: '127',
-    pull_request_url: 'https://github.com/example/repo/pull/127',
-    pull_request_title: 'Refactor database connection pooling',
-    status: REVIEW_CODE_STATUS.HAS_ISSUES,
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-  },
-];
-
 // Main ReviewCodeSection Component
-export default function ReviewCodeSection() {
+export default function ReviewCodeSection({ serviceId }: ReviewCodeSectionProps) {
+  const { data, loading, error } = useReviewLogs(serviceId);
+
   const renderSourceIcon = () => (
     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
       <GitBranch className="h-6 w-6 text-blue-600 dark:text-blue-400" />
     </div>
   );
+
+  // Xử lý loading state
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Code Reviews</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Manage and track your pull request code reviews
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 animate-pulse">
+            <Code2 className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Loading code reviews...
+          </h3>
+        </div>
+      </div>
+    );
+  }
+
+  // Xử lý error state
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Code Reviews</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Manage and track your pull request code reviews
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800/30">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Error loading code reviews
+          </h3>
+          <p className="text-red-600 dark:text-red-400 text-center max-w-md">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Lấy data từ response
+  const reviewLogs =
+    data?.getReviewLogs?.__typename === 'GetReviewLogsSuccessResult'
+      ? data.getReviewLogs.reviewLogs
+      : [];
 
   return (
     <div className="space-y-4">
@@ -563,13 +737,13 @@ export default function ReviewCodeSection() {
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="outline" className="text-sm">
-            {sampleReviewLogs.length} reviews
+            {reviewLogs.length} reviews
           </Badge>
         </div>
       </div>
 
       <div className="space-y-3">
-        {sampleReviewLogs.map(reviewLog => (
+        {reviewLogs.map((reviewLog: ReviewCodeLog) => (
           <ReviewCodeItem
             key={reviewLog.id}
             reviewLog={reviewLog}
@@ -578,7 +752,7 @@ export default function ReviewCodeSection() {
         ))}
       </div>
 
-      {sampleReviewLogs.length === 0 && (
+      {reviewLogs.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
             <Code2 className="h-8 w-8 text-gray-400" />

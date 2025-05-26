@@ -12,11 +12,13 @@ import { BuildSection } from './components/sections/BuildSection';
 import { DeploySection } from './components/sections/DeploySection';
 import { ConfigSection } from './components/sections/ConfigSection';
 import { DangerSection } from './components/sections/DangerSection';
+import { Service_Type_Enum } from '@/gql/graphql';
 
 interface SettingsSectionProps {
   serviceId: number | string;
   serviceName: string;
   projectSlug: string;
+  serviceType?: Service_Type_Enum | string;
   onServiceDeleted?: () => void;
 }
 
@@ -24,6 +26,7 @@ export default function SettingsSection({
   serviceId,
   serviceName,
   projectSlug,
+  serviceType,
   onServiceDeleted,
 }: SettingsSectionProps) {
   const sourceRef = useRef<HTMLDivElement>(null);
@@ -33,8 +36,10 @@ export default function SettingsSection({
   const aiRef = useRef<HTMLDivElement>(null);
   const dangerRef = useRef<HTMLDivElement>(null);
 
+  const isGithubRepo = serviceType === Service_Type_Enum.GithubRepo;
+
   const sections = [
-    { id: 'source', label: 'Source', ref: sourceRef },
+    ...(isGithubRepo ? [{ id: 'source', label: 'Source', ref: sourceRef }] : []),
     { id: 'networking', label: 'Networking', ref: networkingRef },
     { id: 'build', label: 'Build', ref: buildRef },
     { id: 'deploy', label: 'Deploy', ref: deployRef },
@@ -54,9 +59,11 @@ export default function SettingsSection({
     <div className="w-full h-full text-foreground dark:text-gray-300 flex relative">
       <div className="w-full overflow-y-auto pt-6 pl-12 pr-48">
         <VerticalTimeline>
-          <TimelineItem ref={sourceRef} icon={<Code className="h-4 w-4" />} title="Source">
-            <SourceSection serviceId={numericServiceId} />
-          </TimelineItem>
+          {isGithubRepo && (
+            <TimelineItem ref={sourceRef} icon={<Code className="h-4 w-4" />} title="Source">
+              <SourceSection serviceId={numericServiceId} />
+            </TimelineItem>
+          )}
 
           <TimelineItem
             ref={networkingRef}

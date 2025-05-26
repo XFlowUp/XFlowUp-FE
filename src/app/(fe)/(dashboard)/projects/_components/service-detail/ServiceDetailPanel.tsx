@@ -365,7 +365,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
               </TabsContent>
 
               <TabsContent value="review-code" className="h-full flex flex-col px-6 md:px-12 py-6">
-                <ReviewCodeSection />
+                <ReviewCodeSection serviceId={serviceId} />
               </TabsContent>
 
               <TabsContent value="metrics" className="h-full flex flex-col px-6 md:px-12 py-6">
@@ -376,6 +376,7 @@ const ServiceDetailPanel = ({ service, onClose, onServiceDeleted }: ServiceDetai
                 <SettingsSection
                   serviceId={serviceId}
                   serviceName={service?.title || ''}
+                  serviceType={service?.source}
                   projectSlug={projectSlug}
                   onServiceDeleted={onServiceDeleted || onClose}
                 />

@@ -648,6 +648,20 @@ export type GetRepositorySuccessResult = {
   status: Status;
 };
 
+export type GetReviewLogsErrorResult = {
+  __typename?: 'GetReviewLogsErrorResult';
+  message: Scalars['String']['output'];
+  status: Status;
+};
+
+export type GetReviewLogsResult = GetReviewLogsErrorResult | GetReviewLogsSuccessResult;
+
+export type GetReviewLogsSuccessResult = {
+  __typename?: 'GetReviewLogsSuccessResult';
+  reviewLogs: Array<ReviewLog>;
+  status: Status;
+};
+
 /** Service settings */
 export type GetServiceSettings = {
   __typename?: 'GetServiceSettings';
@@ -655,6 +669,8 @@ export type GetServiceSettings = {
   domain?: Maybe<Scalars['String']['output']>;
   /** Port of the service */
   port: Scalars['String']['output'];
+  /** Prompt of the service */
+  prompt?: Maybe<Scalars['String']['output']>;
   /** Use AI review */
   use_ai_review: Scalars['Boolean']['output'];
 };
@@ -766,6 +782,8 @@ export type Mutation = {
   testQueue: Scalars['Boolean']['output'];
   topup: CreatePaymentResult;
   /** Update service settings */
+  updateServicePrompt: UpdateServiceSettingsResult;
+  /** Update service settings */
   updateServiceSettings: UpdateServiceSettingsResult;
   /** Update the details of a project */
   update_project_details: UpdateProjectDetailsResult;
@@ -858,6 +876,11 @@ export type MutationTestQueueArgs = {
 
 export type MutationTopupArgs = {
   data: CreatePaymentInput;
+};
+
+export type MutationUpdateServicePromptArgs = {
+  prompt: Scalars['String']['input'];
+  service_id: Scalars['Float']['input'];
 };
 
 export type MutationUpdateServiceSettingsArgs = {
@@ -964,6 +987,8 @@ export type Query = {
   environments: GetEnvironmentsResult;
   getBuildLogStream: Scalars['String']['output'];
   getDeployLogStream: Scalars['String']['output'];
+  /** Get review logs */
+  getReviewLogs: GetReviewLogsResult;
   /** Get service settings */
   getServiceSettings: GetServiceSettingsResult;
   /** Get all services for a project */
@@ -1024,6 +1049,10 @@ export type QueryGetBuildLogStreamArgs = {
 
 export type QueryGetDeployLogStreamArgs = {
   deploymentId: Scalars['String']['input'];
+};
+
+export type QueryGetReviewLogsArgs = {
+  service_id: Scalars['Float']['input'];
 };
 
 export type QueryGetServiceSettingsArgs = {
@@ -1121,6 +1150,27 @@ export type RepositoryObject = {
   updated_at?: Maybe<Scalars['String']['output']>;
   /** The url of the repository */
   url: Scalars['String']['output'];
+};
+
+export enum ReviewCodeStatus {
+  HasIssues = 'HAS_ISSUES',
+  NoComment = 'NO_COMMENT',
+  Reviewing = 'REVIEWING',
+}
+
+export type ReviewLog = {
+  __typename?: 'ReviewLog';
+  commit_author_avatar: Scalars['String']['output'];
+  commit_author_name: Scalars['String']['output'];
+  commit_message: Scalars['String']['output'];
+  commit_url: Scalars['String']['output'];
+  created_at: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  pull_request_id: Scalars['String']['output'];
+  pull_request_title: Scalars['String']['output'];
+  pull_request_url: Scalars['String']['output'];
+  review_comment: Scalars['String']['output'];
+  status: ReviewCodeStatus;
 };
 
 export enum Service_Type_Enum {
@@ -1457,6 +1507,18 @@ export type TopupMutation = {
     | { __typename?: 'CreatePaymentSuccessResult'; status: Status; payment_url: string };
 };
 
+export type UpdateServicePromptMutationVariables = Exact<{
+  serviceId: Scalars['Float']['input'];
+  prompt: Scalars['String']['input'];
+}>;
+
+export type UpdateServicePromptMutation = {
+  __typename?: 'Mutation';
+  updateServicePrompt:
+    | { __typename?: 'UpdateServiceSettingsErrorResult'; status: Status; message: string }
+    | { __typename?: 'UpdateServiceSettingsSuccessResult'; status: Status };
+};
+
 export type GetAllServicesQueryVariables = Exact<{
   projectSlug: Scalars['String']['input'];
 }>;
@@ -1556,6 +1618,7 @@ export type GetServiceSettingsQuery = {
           port: string;
           use_ai_review: boolean;
           domain?: string | null;
+          prompt?: string | null;
         };
       };
 };
@@ -1735,6 +1798,34 @@ export type GetBranchesQuery = {
   get_branches:
     | { __typename?: 'GetBranchesErrorResult'; status: Status; message?: string | null }
     | { __typename?: 'GetBranchesSuccessResult'; status: Status; data: Array<string> };
+};
+
+export type ReviewLogsQueryVariables = Exact<{
+  serviceId: Scalars['Float']['input'];
+}>;
+
+export type ReviewLogsQuery = {
+  __typename?: 'Query';
+  getReviewLogs:
+    | { __typename?: 'GetReviewLogsErrorResult'; status: Status; message: string }
+    | {
+        __typename?: 'GetReviewLogsSuccessResult';
+        status: Status;
+        reviewLogs: Array<{
+          __typename?: 'ReviewLog';
+          id: number;
+          pull_request_id: string;
+          pull_request_url: string;
+          pull_request_title: string;
+          status: ReviewCodeStatus;
+          commit_author_name: string;
+          commit_author_avatar: string;
+          commit_message: string;
+          commit_url: string;
+          review_comment: string;
+          created_at: any;
+        }>;
+      };
 };
 
 export type GetTeamMembersQueryVariables = Exact<{
@@ -2936,6 +3027,85 @@ export const TopupDocument = {
     },
   ],
 } as unknown as DocumentNode<TopupMutation, TopupMutationVariables>;
+export const UpdateServicePromptDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateServicePrompt' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'prompt' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateServicePrompt' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'prompt' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'prompt' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateServiceSettingsSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [{ kind: 'Field', name: { kind: 'Name', value: 'status' } }],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'UpdateServiceSettingsErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateServicePromptMutation, UpdateServicePromptMutationVariables>;
 export const GetAllServicesDocument = {
   kind: 'Document',
   definitions: [
@@ -3331,6 +3501,7 @@ export const GetServiceSettingsDocument = {
                             { kind: 'Field', name: { kind: 'Name', value: 'port' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'use_ai_review' } },
                             { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'prompt' } },
                           ],
                         },
                       },
@@ -4180,6 +4351,97 @@ export const GetBranchesDocument = {
     },
   ],
 } as unknown as DocumentNode<GetBranchesQuery, GetBranchesQueryVariables>;
+export const ReviewLogsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'ReviewLogs' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getReviewLogs' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'service_id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'serviceId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetReviewLogsSuccessResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'reviewLogs' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'pull_request_id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'pull_request_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'pull_request_title' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'commit_author_name' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'commit_author_avatar' },
+                            },
+                            { kind: 'Field', name: { kind: 'Name', value: 'commit_message' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'commit_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'review_comment' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'created_at' } },
+                          ],
+                        },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'GetReviewLogsErrorResult' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ReviewLogsQuery, ReviewLogsQueryVariables>;
 export const GetTeamMembersDocument = {
   kind: 'Document',
   definitions: [

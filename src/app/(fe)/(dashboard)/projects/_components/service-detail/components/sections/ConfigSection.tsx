@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, SaveIcon } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useGetServiceSettings } from '@/shared/api/queries/useDetailService';
 import { useUpdateServiceSettings } from '@/shared/api/mutations/useDetailServiceMutation';
+import { useUpdateServicePrompt } from '@/shared/api/mutations/useUpdateServicePrompt';
 import { cn } from '@/shared/lib/utils';
 import '@/stylesheet/animations.css';
 
@@ -66,6 +69,9 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({ serviceId }) => {
   const [domain, setDomain] = useState('');
   const [port, setPort] = useState('3000');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [originalPrompt, setOriginalPrompt] = useState('');
+  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
 
   const {
     data: settingsData,
@@ -73,6 +79,7 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({ serviceId }) => {
     refetch,
   } = useGetServiceSettings(serviceId);
   const [updateServiceSettings] = useUpdateServiceSettings();
+  const [updateServicePrompt] = useUpdateServicePrompt();
 
   useEffect(() => {
     if (settingsData?.getServiceSettings.__typename === 'GetServiceSettingsSuccessResult') {
@@ -80,6 +87,8 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({ serviceId }) => {
       setAiEnabled(settings.use_ai_review || false);
       setDomain(settings.domain || '');
       setPort(settings.port || '3000');
+      setCustomPrompt(settings.prompt || '');
+      setOriginalPrompt(settings.prompt || '');
     }
   }, [settingsData, serviceId]);
 
@@ -114,6 +123,33 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({ serviceId }) => {
       setIsUpdating(false);
     }
   };
+
+  const handleSavePrompt = async () => {
+    setIsSavingPrompt(true);
+    try {
+      const { data } = await updateServicePrompt({
+        variables: {
+          serviceId: Number(serviceId),
+          prompt: customPrompt,
+        },
+      });
+
+      if (data?.updateServicePrompt.__typename === 'UpdateServiceSettingsSuccessResult') {
+        toast.success('Custom prompt updated successfully');
+        setOriginalPrompt(customPrompt);
+        refetch();
+      } else if (data?.updateServicePrompt.__typename === 'UpdateServiceSettingsErrorResult') {
+        toast.error(data.updateServicePrompt.message || 'Failed to update custom prompt');
+      }
+    } catch (error) {
+      console.error('Error updating custom prompt:', error);
+      toast.error('An error occurred while updating custom prompt');
+    } finally {
+      setIsSavingPrompt(false);
+    }
+  };
+
+  const hasPromptChanged = customPrompt !== originalPrompt;
 
   if (settingsLoading) {
     return <ConfigSkeleton />;
@@ -177,8 +213,58 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({ serviceId }) => {
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-500" />
               <p className="text-xs text-muted-foreground">
-                AI will automatically review each commit pushed to your repository
+                AI will automatically review each pull request created in your repository
               </p>
+            </div>
+
+            <div className="bg-muted/50 dark:bg-gray-800/50 p-4 rounded-md">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-1.5">
+                  <label className="text-xs font-medium">Custom AI Prompt</label>
+                  <div className="flex flex-col gap-3">
+                    <Textarea
+                      value={customPrompt}
+                      onChange={e => setCustomPrompt(e.target.value)}
+                      placeholder="Enter your custom prompt for AI review..."
+                      className="min-h-[100px] resize-none"
+                    />
+                    {isSavingPrompt ? (
+                      <Button disabled size="sm" className="relative self-end">
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        <span className="opacity-0">Saving...</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleSavePrompt}
+                        disabled={!hasPromptChanged}
+                        size="sm"
+                        className="self-end"
+                      >
+                        <SaveIcon className="h-3.5 w-3.5 mr-1.5" /> Save Prompt
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Customize how AI reviews your code. Leave empty to use default prompt.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
