@@ -16,6 +16,25 @@ const TOPUP = gql(`
 }
 `);
 
+const SUBCRIPTION_CHECKOUT = gql(`
+  mutation CreateSubscriptionCheckout($planId: Float!, $redirectUrl: String!, $cancelUrl: String!) {
+  createSubscriptionCheckout(planId: $planId, redirectUrl: $redirectUrl, cancelUrl: $cancelUrl) {
+    ... on CreateSubscriptionCheckoutSuccess {
+      status
+      subscription_url
+    }
+    ... on CreateSubscriptionCheckoutError {
+      status
+      message
+    }
+  }
+}
+`);
+
 export function useTopupMutation() {
   return useMutation(TOPUP);
+}
+
+export function useCreateSubscriptionCheckoutMutation() {
+  return useMutation(SUBCRIPTION_CHECKOUT);
 }

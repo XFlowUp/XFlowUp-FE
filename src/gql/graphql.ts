@@ -810,7 +810,9 @@ export type MutationConnect_Github_BranchArgs = {
 };
 
 export type MutationCreateSubscriptionCheckoutArgs = {
+  cancelUrl: Scalars['String']['input'];
   planId: Scalars['Float']['input'];
+  redirectUrl: Scalars['String']['input'];
 };
 
 export type MutationCreate_ProjectArgs = {
@@ -1505,6 +1507,23 @@ export type TopupMutation = {
   topup:
     | { __typename?: 'CreatePaymentErrorResult'; status: Status; message: string }
     | { __typename?: 'CreatePaymentSuccessResult'; status: Status; payment_url: string };
+};
+
+export type CreateSubscriptionCheckoutMutationVariables = Exact<{
+  planId: Scalars['Float']['input'];
+  redirectUrl: Scalars['String']['input'];
+  cancelUrl: Scalars['String']['input'];
+}>;
+
+export type CreateSubscriptionCheckoutMutation = {
+  __typename?: 'Mutation';
+  createSubscriptionCheckout:
+    | { __typename?: 'CreateSubscriptionCheckoutError'; status: Status; message?: string | null }
+    | {
+        __typename?: 'CreateSubscriptionCheckoutSuccess';
+        status: Status;
+        subscription_url: string;
+      };
 };
 
 export type UpdateServicePromptMutationVariables = Exact<{
@@ -3027,6 +3046,104 @@ export const TopupDocument = {
     },
   ],
 } as unknown as DocumentNode<TopupMutation, TopupMutationVariables>;
+export const CreateSubscriptionCheckoutDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateSubscriptionCheckout' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'planId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Float' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'redirectUrl' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'cancelUrl' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createSubscriptionCheckout' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'planId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'planId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'redirectUrl' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'redirectUrl' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'cancelUrl' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'cancelUrl' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreateSubscriptionCheckoutSuccess' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'subscription_url' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'InlineFragment',
+                  typeCondition: {
+                    kind: 'NamedType',
+                    name: { kind: 'Name', value: 'CreateSubscriptionCheckoutError' },
+                  },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'message' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateSubscriptionCheckoutMutation,
+  CreateSubscriptionCheckoutMutationVariables
+>;
 export const UpdateServicePromptDocument = {
   kind: 'Document',
   definitions: [

@@ -162,7 +162,7 @@ export default function PlanHeader() {
             <span>{balanceLoading ? 'Loading' : `$ ${balance || '0.00'}`}</span>
           </Badge>
           {isOpen && (
-            <Card className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[300px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-lg z-50">
+            <Card className="absolute top-[calc(100%+10px)] right-0 w-[300px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-lg z-50">
               <div className="p-4">
                 <h3 className="text-gray-900 dark:text-white text-center text-lg font-medium mb-4">
                   {planName} Plan

@@ -39,6 +39,21 @@ export default function Dashboard() {
     }
   };
 
+  const getPlanConfig = () => {
+    if (user?.is_trial) {
+      return '512 MB of RAM, 1 GB of Disk, and 2 vCPU';
+    }
+
+    switch (user?.current_plan_id) {
+      case '1':
+        return '8 GB of RAM, 64 GB of Disk, and 8 vCPU';
+      case '2':
+        return '32 GB of RAM, 256 GB of Disk, and 32 vCPU';
+      default:
+        return '512 MB of RAM, 1 GB of Disk, and 2 vCPU';
+    }
+  };
+
   const getPlanColorClasses = () => {
     const planName = getPlanName();
 
@@ -199,7 +214,7 @@ export default function Dashboard() {
                         {balanceLoading ? 'Loading' : `$ ${balance || '0.00'}`}
                       </p>
                     </div>
-                    <p className="text-sm">512 MB of RAM, 1 GB of Disk, and 2 vCPU</p>
+                    <p className="text-sm">{getPlanConfig()}</p>
                   </div>
                   <div className="flex gap-2">
                     <TopUpDialog colorScheme={planColors.topUpColors}>

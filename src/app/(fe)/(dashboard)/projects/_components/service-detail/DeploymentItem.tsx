@@ -520,17 +520,18 @@ export const DeploymentItemDetail = ({
                 <div className={`w-2 h-2 rounded-full ${config.dotColor} mr-2 animate-pulse`} />
                 {config.label}
               </Badge>
-              {deploymentDetail.url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-4 text-sm font-medium border-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950 transition-all duration-200"
-                  onClick={() => window.open('http://' + deploymentDetail.url!, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Visit Live Site
-                </Button>
-              )}
+              {deploymentDetail.url &&
+                deploymentDetail.serviceType === Service_Type_Enum.GithubRepo && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-4 text-sm font-medium border-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950 transition-all duration-200"
+                    onClick={() => window.open('http://' + deploymentDetail.url!, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Visit Live Site
+                  </Button>
+                )}
               <div className="text-sm text-gray-500">
                 Deployment via {getNameService(deploymentDetail.serviceType)} •{' '}
                 {formatDateTimeStandard(deploymentDetail.createdAt)}
@@ -660,24 +661,46 @@ export const DeploymentItemDetail = ({
                         {deploymentDetail.url && (
                           <div className="flex items-start space-x-4">
                             <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
-                              <ExternalLink className="h-6 w-6 text-green-600 dark:text-green-400" />
+                              {deploymentDetail.serviceType === Service_Type_Enum.GithubRepo ? (
+                                <ExternalLink className="h-6 w-6 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <Copy className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                              )}
                             </div>
                             <div>
                               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 Live URL
                               </span>
                               <div className="mt-1">
-                                <a
-                                  href={'http://' + deploymentDetail.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
-                                >
-                                  <span className="truncate max-w-[300px] block">
-                                    {deploymentDetail.url}
-                                  </span>
-                                  <ExternalLink className="h-4 w-4 ml-2 flex-shrink-0" />
-                                </a>
+                                {deploymentDetail.serviceType === Service_Type_Enum.GithubRepo ? (
+                                  <a
+                                    href={'http://' + deploymentDetail.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                                  >
+                                    <span className="truncate max-w-[300px] block">
+                                      {deploymentDetail.url}
+                                    </span>
+                                    <ExternalLink className="h-4 w-4 ml-2 flex-shrink-0" />
+                                  </a>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        'http://' + deploymentDetail.url!
+                                      );
+                                      toast.success('URL copied to clipboard');
+                                    }}
+                                    className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium bg-blue-50 dark:bg-blue-950/50 px-3 py-1 rounded-md hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                                    title="Copy URL"
+                                  >
+                                    <span className="truncate max-w-[300px] block">
+                                      {deploymentDetail.url}
+                                    </span>
+                                    <Copy className="h-4 w-4 ml-2 flex-shrink-0" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
