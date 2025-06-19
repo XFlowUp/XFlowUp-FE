@@ -1,8 +1,10 @@
+'use client';
+import { memo } from 'react';
 import ThemeLogo from '@/components/theme-logo';
 import { UserDropdown } from '@/components/user-nav';
 import { useRouter } from 'next/navigation';
 
-export const PlanHeader = () => {
+export const PlanHeader = memo(() => {
   const router = useRouter();
 
   return (
@@ -36,4 +38,6 @@ export const PlanHeader = () => {
       </div>
     </header>
   );
-};
+});
+
+PlanHeader.displayName = 'PlanHeader';

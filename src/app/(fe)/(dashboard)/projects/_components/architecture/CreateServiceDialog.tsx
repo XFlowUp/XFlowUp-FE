@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import ServiceMainMenu from './ServiceMainMenu';
 import GithubRepositoryList from './GithubRepositoryList';
@@ -21,13 +21,33 @@ enum ServiceDialogScreen {
 interface ServiceDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  initialScreen?: 'main' | 'github' | 'database';
 }
 
-export default function ServiceDialog({ isOpen, onOpenChange }: ServiceDialogProps) {
+export default function ServiceDialog({
+  isOpen,
+  onOpenChange,
+  initialScreen = 'main',
+}: ServiceDialogProps) {
   const [currentScreen, setCurrentScreen] = useState(ServiceDialogScreen.MAIN_MENU);
   const [selectedRepo, setSelectedRepo] = useState<any>(null);
   const [selectedDatabase, setSelectedDatabase] = useState<any>(null);
   const { addServiceNode } = useArchitecture();
+
+  useEffect(() => {
+    if (isOpen && initialScreen) {
+      switch (initialScreen) {
+        case 'github':
+          setCurrentScreen(ServiceDialogScreen.GITHUB_REPOS);
+          break;
+        case 'database':
+          setCurrentScreen(ServiceDialogScreen.DATABASE_SERVICES);
+          break;
+        default:
+          setCurrentScreen(ServiceDialogScreen.MAIN_MENU);
+      }
+    }
+  }, [isOpen, initialScreen]);
 
   const handleBackToMainMenu = () => {
     setCurrentScreen(ServiceDialogScreen.MAIN_MENU);

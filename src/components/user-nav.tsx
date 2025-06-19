@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode } from 'react';
+import { ReactNode, memo, useMemo, useCallback } from 'react';
 import { IoMdPower } from '@react-icons/all-files/io/IoMdPower';
 import { useTheme } from 'next-themes';
 import {
@@ -21,32 +21,30 @@ import { useAuthStore } from '@/shared/stores/auth';
 import useAuth from '@/shared/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
-export function ItemComponent({
-  icon,
-  title,
-  href,
-}: {
-  icon: ReactNode;
-  title: string;
-  href?: string;
-}) {
-  const router = useRouter();
-  return (
-    <div>
-      <DropdownMenuItem
-        className="px-3 py-2 mt-1 group cursor-pointer"
-        onClick={() => router.push(href ?? '#')}
-      >
-        {icon}
-        <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
-          {title}
-        </span>
-      </DropdownMenuItem>
-    </div>
-  );
-}
+export const ItemComponent = memo(
+  ({ icon, title, href }: { icon: ReactNode; title: string; href?: string }) => {
+    const router = useRouter();
 
-export function LogoutButton() {
+    const handleClick = useCallback(() => {
+      router.push(href ?? '#');
+    }, [router, href]);
+
+    return (
+      <div>
+        <DropdownMenuItem className="px-3 py-2 mt-1 group cursor-pointer" onClick={handleClick}>
+          {icon}
+          <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
+            {title}
+          </span>
+        </DropdownMenuItem>
+      </div>
+    );
+  }
+);
+
+ItemComponent.displayName = 'ItemComponent';
+
+export const LogoutButton = memo(() => {
   const { logout } = useAuth();
   return (
     <div>
@@ -59,30 +57,43 @@ export function LogoutButton() {
       </DropdownMenuItem>
     </div>
   );
-}
+});
 
-export function ThemeToggle() {
+LogoutButton.displayName = 'LogoutButton';
+
+export const ThemeToggle = memo(() => {
   const { resolvedTheme, setTheme } = useTheme();
+
+  const handleThemeToggle = useCallback(() => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  }, [resolvedTheme, setTheme]);
+
+  const themeIcon = useMemo(() => {
+    return resolvedTheme === 'dark' ? <SunIcon className="p-0" /> : <MoonIcon className="p-0" />;
+  }, [resolvedTheme]);
+
+  const themeText = useMemo(() => {
+    return resolvedTheme === 'dark' ? 'Light Theme' : 'Dark Theme';
+  }, [resolvedTheme]);
 
   return (
     <div>
-      <DropdownMenuItem
-        className="px-3 py-2 mt-1 cursor-pointer group"
-        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-      >
-        {resolvedTheme === 'dark' ? <SunIcon className="p-0" /> : <MoonIcon className="p-0" />}
+      <DropdownMenuItem className="px-3 py-2 mt-1 cursor-pointer group" onClick={handleThemeToggle}>
+        {themeIcon}
         <span className="ml-1 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 group-hover:dark:text-white">
-          {resolvedTheme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          {themeText}
         </span>
       </DropdownMenuItem>
     </div>
   );
-}
+});
 
-export function UserDropdown() {
+ThemeToggle.displayName = 'ThemeToggle';
+
+export const UserDropdown = memo(() => {
   const { user } = useAuthStore();
 
-  const getPlanName = () => {
+  const planName = useMemo(() => {
     if (user?.is_trial) {
       return 'Trial';
     }
@@ -95,11 +106,9 @@ export function UserDropdown() {
       default:
         return 'Free';
     }
-  };
+  }, [user?.is_trial, user?.current_plan_id]);
 
-  const getPlanColorClasses = () => {
-    const planName = getPlanName();
-
+  const planColorClasses = useMemo(() => {
     switch (planName) {
       case 'Trial':
         return 'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
@@ -112,7 +121,7 @@ export function UserDropdown() {
       default:
         return 'bg-gray-50 text-gray-500 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
     }
-  };
+  }, [planName]);
 
   return (
     <DropdownMenu>
@@ -125,9 +134,9 @@ export function UserDropdown() {
         <div className="flex flex-col space-y-1">
           <div className="flex flex-col space-y-3 items-center justify-center relative bg-gray-100 dark:bg-gray-800 pt-7 pb-5 mb-2 rounded-md">
             <div
-              className={`flex flex-col absolute py-1 px-3 rounded border top-0 left-0 mt-2 ml-2 ${getPlanColorClasses()}`}
+              className={`flex flex-col absolute py-1 px-3 rounded border top-0 left-0 mt-2 ml-2 ${planColorClasses}`}
             >
-              <p className="uppercase text-[10px] font-medium">{getPlanName()}</p>
+              <p className="uppercase text-[10px] font-medium">{planName}</p>
             </div>
             <Avatar className="w-12 h-12 mt-3" />
             <div className="flex flex-col items-center justify-center mt-3">
@@ -156,4 +165,6 @@ export function UserDropdown() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+UserDropdown.displayName = 'UserDropdown';

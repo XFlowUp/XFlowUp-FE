@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { db } from '@/lib/filebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import {
   Background,
   useNodesState,
@@ -48,9 +48,12 @@ import { LiveList, shallow } from '@liveblocks/client';
 import MessagePanel from './MessagePanel';
 import axiosClient from '@/lib/axios';
 import { ENDPOINT } from '@/shared/constants/endpoint';
+import ContextMenu from './architecture/ContextMenu';
+import StickyNoteNode from './architecture/StickyNoteNode';
 
 const nodeTypes: NodeTypes = {
   service: ServiceNode,
+  stickyNote: StickyNoteNode,
 };
 
 const emptyNodes: Node[] = [];
@@ -154,9 +157,11 @@ function Flow() {
     Record<string, { x: number; y: number }>
   >({});
   const [isStorageReady, setIsStorageReady] = useState(false);
+  const [stickyNotes, setStickyNotes] = useState<Node[]>([]);
+  const [deletedStickyNotes, setDeletedStickyNotes] = useState<Set<string>>(new Set());
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
 
-  const updateNodePosition = useMutation(
+  const updateNodePositionInMemory = useMutation(
     ({ storage }, nodeId: string, position: { x: number; y: number }) => {
       if (!isStorageReady) {
         console.warn('Storage not ready yet');
@@ -181,23 +186,64 @@ function Flow() {
         } else {
           nodes.push({ id: nodeId, position });
         }
+      } catch (error) {
+        console.error('Error in updateNodePositionInMemory:', error);
+      }
+    },
+    [isStorageReady]
+  );
 
+  // Save position to Firebase (only called on drag stop)
+  const saveNodePositionToFirebase = useCallback(
+    async (nodeId: string, position: { x: number; y: number }) => {
+      if (!projectSlug || !isStorageReady) return;
+
+      try {
+        // Update Liveblocks storage first
+        updateNodePositionInMemory(nodeId, position);
+
+        // Save to xyflow collection for service nodes
         const xyflowRef = doc(db, 'xyflow', projectSlug);
-        setDoc(
+        const docSnap = await getDoc(xyflowRef);
+
+        let allNodes: { id: string; position: { x: number; y: number } }[] = [];
+        if (docSnap.exists() && docSnap.data().nodes) {
+          allNodes = docSnap.data().nodes;
+        }
+
+        const nodeIndex = allNodes.findIndex(node => node.id === nodeId);
+        if (nodeIndex !== -1) {
+          allNodes[nodeIndex] = { id: nodeId, position };
+        } else {
+          allNodes.push({ id: nodeId, position });
+        }
+
+        await setDoc(
           xyflowRef,
           {
-            nodes: nodes.toArray(),
+            nodes: allNodes,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
-        ).catch(error => {
-          console.error('Error updating Firestore:', error);
-        });
+        );
+
+        // Also save sticky note position to its own collection if it's a sticky note
+        if (nodeId.startsWith('sticky-')) {
+          const stickyNoteRef = doc(db, 'sticky-notes', `${projectSlug}-${nodeId}`);
+          await setDoc(
+            stickyNoteRef,
+            {
+              position,
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true }
+          );
+        }
       } catch (error) {
-        console.error('Error in updateNodePosition:', error);
+        console.error('Error saving node position to Firebase:', error);
       }
     },
-    [projectSlug, isStorageReady]
+    [projectSlug, isStorageReady, updateNodePositionInMemory]
   );
 
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(emptyNodes);
@@ -205,9 +251,18 @@ function Flow() {
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [draggedNodes, setDraggedNodes] = useState<Map<string, { x: number; y: number }>>(
+    new Map()
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Node['data'] | null>(null);
   const [hasInitialFitView, setHasInitialFitView] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [dialogInitialScreen, setDialogInitialScreen] = useState<'main' | 'github' | 'database'>(
+    'main'
+  );
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -238,11 +293,59 @@ function Flow() {
     }
   }, [nodesStorage]);
 
+  // Listen for sticky note updates and deletions
+  useEffect(() => {
+    const handleStickyNoteUpdate = (event: CustomEvent) => {
+      const { projectSlug: updatedProjectSlug, nodeId, color } = event.detail;
+
+      if (updatedProjectSlug === projectSlug) {
+        setStickyNotes(prevStickyNotes =>
+          prevStickyNotes.map(node =>
+            node.id === nodeId ? { ...node, data: { ...node.data, color } } : node
+          )
+        );
+      }
+    };
+
+    const handleStickyNoteDelete = (event: CustomEvent) => {
+      const { projectSlug: updatedProjectSlug, nodeId } = event.detail;
+
+      if (updatedProjectSlug === projectSlug) {
+        console.log('Handling sticky note delete for:', nodeId);
+
+        // Add to deleted set to prevent re-adding
+        setDeletedStickyNotes(prev => new Set([...prev, nodeId]));
+
+        setStickyNotes(prevStickyNotes => {
+          const filtered = prevStickyNotes.filter(node => node.id !== nodeId);
+          console.log('StickyNotes after filter:', filtered.length);
+          return filtered;
+        });
+
+        // Also remove from main nodes state
+        setNodes(prevNodes => {
+          const filtered = prevNodes.filter(node => node.id !== nodeId);
+          console.log('Nodes after filter:', filtered.length);
+          return filtered;
+        });
+      }
+    };
+
+    window.addEventListener('stickyNoteUpdated', handleStickyNoteUpdate as EventListener);
+    window.addEventListener('stickyNoteDeleted', handleStickyNoteDelete as EventListener);
+
+    return () => {
+      window.removeEventListener('stickyNoteUpdated', handleStickyNoteUpdate as EventListener);
+      window.removeEventListener('stickyNoteDeleted', handleStickyNoteDelete as EventListener);
+    };
+  }, [projectSlug, setNodes]);
+
   useEffect(() => {
     if (!projectSlug) return;
 
-    const loadFirestorePositions = async () => {
+    const loadFirestoreData = async () => {
       try {
+        // Load node positions
         const xyflowRef = doc(db, 'xyflow', projectSlug);
         const docSnap = await getDoc(xyflowRef);
 
@@ -256,15 +359,41 @@ function Flow() {
             setFirestorePositions(positions);
           }
         }
+
+        // Load sticky notes
+        const stickyNotesQuery = query(
+          collection(db, 'sticky-notes'),
+          where('projectSlug', '==', projectSlug)
+        );
+        const stickyNotesSnapshot = await getDocs(stickyNotesQuery);
+
+        const loadedStickyNotes: Node[] = [];
+        stickyNotesSnapshot.forEach(doc => {
+          const data = doc.data();
+          // Skip if already deleted
+          if (!deletedStickyNotes.has(data.nodeId)) {
+            loadedStickyNotes.push({
+              id: data.nodeId,
+              type: 'stickyNote',
+              position: data.position || { x: 100, y: 100 },
+              data: {
+                text: data.text || '',
+                color: data.color || 'yellow',
+              },
+            });
+          }
+        });
+
+        setStickyNotes(loadedStickyNotes);
       } catch (error) {
-        console.error('Error loading Firestore positions:', error);
+        console.error('Error loading Firestore data:', error);
       } finally {
         setIsFirestoreLoading(false);
       }
     };
 
-    loadFirestorePositions();
-  }, [projectSlug]);
+    loadFirestoreData();
+  }, [projectSlug, deletedStickyNotes]);
 
   useEffect(() => {
     if (servicesLoading || isStorageLoading || isFirestoreLoading) {
@@ -272,13 +401,15 @@ function Flow() {
       return;
     }
 
+    // Determine service nodes
+    let servicesNodes: Node[] = [];
     if (
       data?.get_all_services?.__typename === 'GetAllServicesSuccessResult' &&
       data.get_all_services.services
     ) {
       const services = data.get_all_services.services;
 
-      if (services.length === 0) {
+      if (services.length === 0 && stickyNotes.length === 0) {
         setNodes(emptyStateNodes);
         return;
       }
@@ -288,7 +419,7 @@ function Flow() {
       const centerX = 250;
       const centerY = 150;
       const radius = 200;
-      const servicesNodes: Node[] = sortedServices.map((service, index) => {
+      servicesNodes = sortedServices.map((service, index) => {
         const storedPosition = firestorePositions[service.id];
         let position;
 
@@ -318,9 +449,7 @@ function Flow() {
         };
       });
 
-      setNodes(servicesNodes);
-
-      if (Object.keys(firestorePositions).length === 0) {
+      if (Object.keys(firestorePositions).length === 0 && servicesNodes.length > 0) {
         const xyflowRef = doc(db, 'xyflow', projectSlug);
         setDoc(
           xyflowRef,
@@ -335,6 +464,19 @@ function Flow() {
         );
       }
     }
+
+    // Filter out deleted sticky notes
+    const activeStickyNotes = stickyNotes.filter(note => !deletedStickyNotes.has(note.id));
+
+    // Always combine service nodes with active sticky notes
+    const allNodes = [...servicesNodes, ...activeStickyNotes];
+
+    // If we have sticky notes but no services, show them
+    if (servicesNodes.length === 0 && activeStickyNotes.length > 0) {
+      setNodes(activeStickyNotes);
+    } else {
+      setNodes(allNodes);
+    }
   }, [
     data,
     servicesLoading,
@@ -343,23 +485,26 @@ function Flow() {
     setNodes,
     projectSlug,
     firestorePositions,
+    stickyNotes,
+    deletedStickyNotes,
   ]);
 
   useEffect(() => {
     if (!nodesStorage || servicesLoading || isStorageLoading || isFirestoreLoading) return;
 
-    const updatedNodes = nodes.map(node => {
-      const storedNode = nodesStorage.find(n => n.id === node.id);
-      if (storedNode) {
-        return {
-          ...node,
-          position: storedNode.position,
-        };
-      }
-      return node;
+    setNodes(prevNodes => {
+      return prevNodes.map(node => {
+        const storedNode = nodesStorage.find(n => n.id === node.id);
+        if (storedNode) {
+          return {
+            ...node,
+            position: storedNode.position,
+          };
+        }
+        return node;
+      });
     });
-    setNodes(updatedNodes);
-  }, [nodesStorage, setNodes, servicesLoading, isStorageLoading, isFirestoreLoading]);
+  }, [nodesStorage, servicesLoading, isStorageLoading, isFirestoreLoading]);
 
   const handleNodesChange = useCallback(
     (changes: any) => {
@@ -371,7 +516,12 @@ function Flow() {
       try {
         changes.forEach((change: any) => {
           if (change.type === 'position') {
-            updateNodePosition(change.id, change.position);
+            if (isDragging) {
+              // Only update in memory during drag (for live collaboration)
+              updateNodePositionInMemory(change.id, change.position);
+              // Track dragged nodes to save later
+              setDraggedNodes(prev => new Map(prev.set(change.id, change.position)));
+            }
           }
         });
         onNodesChangeBase(changes);
@@ -387,7 +537,7 @@ function Flow() {
       onNodesChangeBase,
       isDragging,
       saveToHistory,
-      updateNodePosition,
+      updateNodePositionInMemory,
       servicesLoading,
       isStorageLoading,
       isFirestoreLoading,
@@ -523,6 +673,12 @@ function Flow() {
         }
         return [...prevNodes, newNode];
       });
+
+      // If it's a sticky note, also update the stickyNotes state
+      if (newNode.type === 'stickyNote') {
+        setStickyNotes(prevStickyNotes => [...prevStickyNotes, newNode]);
+      }
+
       saveToHistory();
     },
     [setNodes, saveToHistory]
@@ -532,6 +688,11 @@ function Flow() {
     (event: React.MouseEvent, node: Node) => {
       if (node.data.isEmptyState && !servicesLoading) {
         setIsDialogOpen(true);
+        return;
+      }
+
+      // Don't open detail panel for sticky notes
+      if (node.type === 'stickyNote') {
         return;
       }
 
@@ -587,6 +748,113 @@ function Flow() {
     refetchServices();
   }, [handleCloseServicePanel, refetchServices]);
 
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+
+    const bounds = flowRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+
+    setContextMenuPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    // Close context menu when clicking on empty space
+    if (contextMenuPosition) {
+      setContextMenuPosition(null);
+    }
+  }, [contextMenuPosition]);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenuPosition(null);
+  }, []);
+
+  const handleAddGithubService = useCallback(() => {
+    setDialogInitialScreen('github');
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleAddDatabaseService = useCallback(() => {
+    setDialogInitialScreen('database');
+    setIsDialogOpen(true);
+  }, []);
+
+  const reloadStickyNotes = useCallback(async () => {
+    if (!projectSlug) return;
+
+    try {
+      const stickyNotesQuery = query(
+        collection(db, 'sticky-notes'),
+        where('projectSlug', '==', projectSlug)
+      );
+      const stickyNotesSnapshot = await getDocs(stickyNotesQuery);
+
+      const loadedStickyNotes: Node[] = [];
+      stickyNotesSnapshot.forEach(doc => {
+        const data = doc.data();
+        loadedStickyNotes.push({
+          id: data.nodeId,
+          type: 'stickyNote',
+          position: data.position || { x: 100, y: 100 },
+          data: {
+            text: data.text || '',
+            color: data.color || 'yellow',
+          },
+        });
+      });
+
+      setStickyNotes(loadedStickyNotes);
+    } catch (error) {
+      console.error('Error reloading sticky notes:', error);
+    }
+  }, [projectSlug]);
+
+  const handleAddStickyNote = useCallback(async () => {
+    if (!rfInstance) return;
+
+    const bounds = flowRef.current?.getBoundingClientRect();
+    if (!bounds || !contextMenuPosition) return;
+
+    const position = rfInstance.screenToFlowPosition({
+      x: contextMenuPosition.x - bounds.left,
+      y: contextMenuPosition.y - bounds.top,
+    });
+
+    const stickyNoteId = `sticky-${Date.now()}`;
+    const newStickyNote: Node = {
+      id: stickyNoteId,
+      type: 'stickyNote',
+      position,
+      data: {
+        text: '',
+        color: 'yellow',
+      },
+    };
+
+    // Save to Firebase
+    try {
+      const stickyNoteRef = doc(db, 'sticky-notes', `${projectSlug}-${stickyNoteId}`);
+      const stickyNoteData = {
+        text: '',
+        color: 'yellow',
+        position,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        projectSlug,
+        nodeId: stickyNoteId,
+      };
+
+      await setDoc(stickyNoteRef, stickyNoteData);
+    } catch (error) {
+      console.error('Error creating sticky note:', error);
+    }
+
+    handleAddNode(newStickyNote);
+    handleCloseContextMenu();
+  }, [rfInstance, contextMenuPosition, handleAddNode, handleCloseContextMenu, projectSlug]);
+
   const [{ cursor }, updateMyPresence] = useMyPresence();
 
   return (
@@ -627,6 +895,13 @@ function Flow() {
           onClose={handleCloseServicePanel}
           onServiceDeleted={handleServiceDeleted}
         />
+        <ContextMenu
+          position={contextMenuPosition}
+          onClose={handleCloseContextMenu}
+          onAddGithubService={handleAddGithubService}
+          onAddDatabaseService={handleAddDatabaseService}
+          onAddStickyNote={handleAddStickyNote}
+        />
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -635,13 +910,36 @@ function Flow() {
             onEdgesChange(changes);
             saveToHistory();
           }}
-          onNodeDragStart={() => setIsDragging(true)}
-          onNodeDragStop={() => {
+          onNodeDragStart={() => {
+            setIsDragging(true);
+            setDraggedNodes(new Map()); // Clear previous drag data
+          }}
+          onNodeDragStop={async () => {
             setIsDragging(false);
+
+            // Save all dragged node positions to Firebase
+            const promises: Promise<void>[] = [];
+            draggedNodes.forEach((position, nodeId) => {
+              promises.push(saveNodePositionToFirebase(nodeId, position));
+            });
+
+            if (promises.length > 0) {
+              try {
+                await Promise.all(promises);
+                console.log(`Saved ${promises.length} node positions to Firebase`);
+              } catch (error) {
+                console.error('Error saving node positions:', error);
+              }
+            }
+
+            // Clear dragged nodes
+            setDraggedNodes(new Map());
             saveToHistory();
           }}
           onNodeClick={handleNodeClick}
           onConnect={onConnect}
+          onContextMenu={handleContextMenu}
+          onPaneClick={handlePaneClick}
           nodeTypes={nodeTypes}
           onInit={onInit}
           onMove={onMove}
@@ -667,7 +965,16 @@ function Flow() {
               <Plus className="mr-2 h-4 w-4" />
               Create
             </Button>
-            <ServiceDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
+            <ServiceDialog
+              isOpen={isDialogOpen}
+              onOpenChange={open => {
+                setIsDialogOpen(open);
+                if (!open) {
+                  setDialogInitialScreen('main');
+                }
+              }}
+              initialScreen={dialogInitialScreen}
+            />
           </Panel>
 
           <Panel position="top-left" className="flex flex-col gap-2">

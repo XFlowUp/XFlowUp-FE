@@ -1,7 +1,8 @@
 'use client';
+import { memo } from 'react';
 import { useAuthStore } from '@/shared/stores/auth';
 
-export const PlanSidebar = () => {
+export const PlanSidebar = memo(() => {
   const { user } = useAuthStore();
 
   return (
@@ -321,4 +322,6 @@ export const PlanSidebar = () => {
       </div>
     </div>
   );
-};
+});
+
+PlanSidebar.displayName = 'PlanSidebar';

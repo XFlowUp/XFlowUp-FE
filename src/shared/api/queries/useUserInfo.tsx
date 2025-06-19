@@ -33,12 +33,12 @@ const GET_BALANCE = gql(`
 
 export function useUserInfo() {
   return useQuery(GET_USER_INFO, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-first',
   });
 }
 
 export function useBalance() {
   return useQuery(GET_BALANCE, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-first',
   });
 }

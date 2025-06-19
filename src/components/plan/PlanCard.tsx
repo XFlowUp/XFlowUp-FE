@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
+import { memo, useMemo } from 'react';
 import { useAuthStore } from '@/shared/stores/auth';
 import { useBalance } from '@/shared/api/queries/useUserInfo';
 
@@ -19,14 +20,14 @@ const featureVariants = {
   visible: { opacity: 1, x: 0 },
 };
 
-export const PlanCard = () => {
+export const PlanCard = memo(() => {
   const { user } = useAuthStore();
   const { data: balanceData } = useBalance();
 
   const balanceInfo = balanceData?.balance;
   const balance = balanceInfo && 'balance' in balanceInfo ? balanceInfo.balance : null;
 
-  const getPlanName = () => {
+  const planName = useMemo(() => {
     if (user?.is_trial) {
       return 'Trial';
     }
@@ -39,11 +40,9 @@ export const PlanCard = () => {
       default:
         return 'Free';
     }
-  };
+  }, [user?.is_trial, user?.current_plan_id]);
 
-  const planName = getPlanName();
-
-  const getPlanFeatures = () => {
+  const planFeatures = useMemo(() => {
     switch (planName) {
       case 'Hobby':
         return [
@@ -74,9 +73,9 @@ export const PlanCard = () => {
           'Community Support',
         ];
     }
-  };
+  }, [planName]);
 
-  const getPlanColors = () => {
+  const planColors = useMemo(() => {
     switch (planName) {
       case 'Hobby':
         return {
@@ -123,19 +122,16 @@ export const PlanCard = () => {
           featureCircle: 'bg-gray-50 dark:bg-[#2A2A2A]',
         };
     }
-  };
-
-  const colors = getPlanColors();
-  const features = getPlanFeatures();
+  }, [planName]);
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
-      className={`relative overflow-hidden rounded-lg p-8 ${colors.bg} border-1 ${colors.border}`}
+      className={`relative overflow-hidden rounded-lg p-8 ${planColors.bg} border-1 ${planColors.border}`}
     >
       {/* Gradient Background */}
-      <div className={`absolute inset-0 bg-gradient-to-b ${colors.gradient}`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-b ${planColors.gradient}`}></div>
 
       {/* Content */}
       <div className="relative z-10">
@@ -144,7 +140,7 @@ export const PlanCard = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, type: 'spring' }}
-            className={`w-24 h-24 rounded-full ${colors.circle} flex items-center justify-center mb-4`}
+            className={`w-24 h-24 rounded-full ${planColors.circle} flex items-center justify-center mb-4`}
           >
             <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center">
               <div className="grid grid-cols-3 grid-rows-3 gap-1">
@@ -154,7 +150,7 @@ export const PlanCard = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`w-3 h-3 ${value ? `bg-${colors.check.split(' ')[0].replace('text-', '')}` : 'bg-white'}`}
+                    className={`w-3 h-3 ${value ? `bg-${planColors.check.split(' ')[0].replace('text-', '')}` : 'bg-white'}`}
                   ></motion.div>
                 ))}
               </div>
@@ -185,17 +181,17 @@ export const PlanCard = () => {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8"
         >
-          {features.map((feature, index) => (
+          {planFeatures.map((feature, index) => (
             <motion.div
               key={index}
               variants={featureVariants}
-              className={`${colors.featureBg} backdrop-blur-sm rounded-md p-4 flex items-start`}
+              className={`${planColors.featureBg} backdrop-blur-sm rounded-md p-4 flex items-start`}
               whileHover={{ x: 5 }}
             >
               <div
-                className={`w-5 h-5 rounded-full ${colors.featureCircle} flex items-center justify-center mr-3 mt-0.5`}
+                className={`w-5 h-5 rounded-full ${planColors.featureCircle} flex items-center justify-center mr-3 mt-0.5`}
               >
-                <Check className={`h-3 w-3 ${colors.check}`} />
+                <Check className={`h-3 w-3 ${planColors.check}`} />
               </div>
               <span className="text-gray-700 dark:text-gray-300">{feature}</span>
             </motion.div>
@@ -204,4 +200,6 @@ export const PlanCard = () => {
       </div>
     </motion.div>
   );
-};
+});
+
+PlanCard.displayName = 'PlanCard';
